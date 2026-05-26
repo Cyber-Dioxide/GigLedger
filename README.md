@@ -13,7 +13,8 @@
 ---
 
 > **Stop guessing how much tax you owe.** GigLedger is a self-hosted finance dashboard built for freelancers, contractors, and gig workers who want a clear picture of income, expenses, and quarterly tax obligations — without the complexity of full accounting software.
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 08-02-48" src="https://github.com/user-attachments/assets/55177c29-82c6-4a9b-9d7c-0aaf07670152" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-28" src="https://github.com/user-attachments/assets/e7a14609-40da-4573-a126-60a8f935f620" />
+
 
 
 ---
@@ -209,13 +210,11 @@ gigledger/
 ## 🖼 Screenshots
 
 > **Tip:** Add your own screenshots by placing images in a `screenshots/` folder at the repo root and updating the image paths above.
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-46" src="https://github.com/user-attachments/assets/08b06266-57b0-4ca2-b973-7227c22c3085" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-37" src="https://github.com/user-attachments/assets/51f0efd5-9ef3-4b62-915f-4bed84d4a615" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-33" src="https://github.com/user-attachments/assets/6268d2e2-0065-4444-aa43-94f4bde4747c" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-28" src="https://github.com/user-attachments/assets/9a6a871e-00b4-4fbf-8d15-871b76dd04b9" />
 
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 08-03-40" src="https://github.com/user-attachments/assets/204e71a6-d31f-4ec4-a524-696aebf4a520" />
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 08-03-16" src="https://github.com/user-attachments/assets/7223debc-b58e-42e5-aa17-84fdc293c665" />
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 08-02-54" src="https://github.com/user-attachments/assets/cb9f0649-6803-4e37-b5e1-3b53466c8fd7" />
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 08-02-48" src="https://github.com/user-attachments/assets/7f06ba6d-6b7d-4e54-a397-aabbb0297958" />
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 08-02-06" src="https://github.com/user-attachments/assets/b084738a-157d-4fd3-ac88-078ed72ecc18" />
-<img width="2290" height="1356" alt="Screenshot from 2026-05-26 08-01-29" src="https://github.com/user-attachments/assets/cf53958b-d1b6-474a-b566-9165cc7c7a6a" />
 
 
 ---
