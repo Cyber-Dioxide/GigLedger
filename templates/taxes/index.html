@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Taxes - FreelanceCash{% endblock %}
+{% block title %}Taxes - GigLedger{% endblock %}
 {% block content %}
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-up">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Quarterly Taxes</h1>
-            <p class="text-sm text-gray-500 mt-1">Tax year {{ current_year }} at {{ (tax_rate * 100)|int }}% rate</p>
+            <h1 class="text-2xl font-extrabold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Quarterly Taxes</h1>
+            <p class="text-sm text-gray-400 mt-1 font-medium">Tax year {{ current_year }} at {{ (tax_rate * 100)|int }}% rate</p>
         </div>
         <form method="POST" action="{{ url_port('taxes.calculate') }}">
-            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors text-sm">
+            <button type="submit" class="candy-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 Recalculate
             </button>
@@ -17,64 +17,64 @@
 
     <!-- Tax Summary -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center"><svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg></div>
-                <div><p class="text-sm font-medium text-gray-500">Total Tax Obligation</p><p class="text-2xl font-bold text-amber-700">{{ currency | currency_symbol }}{{ tax_obligation | money }}</p></div>
+        <div class="bouncy-card p-6 border-2 border-amber-200 fade-up fade-up-delay-1">
+            <div class="flex items-center gap-3 mb-2 relative z-10">
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center icon-bounce"><svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg></div>
+                <div><p class="text-sm font-semibold text-gray-400">Total Tax Obligation</p><p class="text-2xl font-extrabold text-amber-600">{{ currency | currency_symbol }}{{ tax_obligation | money }}</p></div>
             </div>
-            <p class="text-xs text-gray-400">Money you should set aside for taxes this year</p>
+            <p class="text-xs text-gray-300 font-medium relative z-10">Money you should set aside for taxes this year</p>
         </div>
-        <div class="bg-white rounded-2xl p-5 border-2 border-brand-200 shadow-sm shadow-brand-50">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center"><svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg></div>
-                <div><p class="text-sm font-medium text-gray-500">Safe to Spend</p><p class="text-2xl font-bold {% if safe_balance >= 0 %}text-brand-700{% else %}text-red-600{% endif %}">{{ currency | currency_symbol }}{{ safe_balance | money }}</p></div>
+        <div class="bouncy-card p-6 border-2 border-brand-200 pulse-glow fade-up fade-up-delay-2">
+            <div class="flex items-center gap-3 mb-2 relative z-10">
+                <div class="w-10 h-10 rounded-2xl bg-brand-50 flex items-center justify-center icon-bounce"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg></div>
+                <div><p class="text-sm font-semibold text-gray-400">Safe to Spend</p><p class="text-2xl font-extrabold {% if safe_balance >= 0 %}text-brand-700{% else %}text-red-500{% endif %}">{{ currency | currency_symbol }}{{ safe_balance | money }}</p></div>
             </div>
-            <p class="text-xs text-gray-400">Balance minus your tax reserve</p>
+            <p class="text-xs text-gray-300 font-medium relative z-10">Balance minus your tax reserve</p>
         </div>
     </div>
 
     <!-- Quarterly Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {% for q in quarters %}
-        <div class="card-hover bg-white rounded-2xl p-6 border {% if q.is_current %}border-brand-300 shadow-md shadow-brand-50{% else %}border-gray-100 shadow-sm{% endif %} fade-in">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-900">Q{{ q.quarter }}</h3>
+        <div class="bouncy-card p-6 {% if q.is_current %}border-2 border-brand-200{% endif %} fade-up fade-up-delay-{{ loop.index }}">
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <h3 class="text-xl font-extrabold text-gray-900">Q{{ q.quarter }}</h3>
                 <div class="flex items-center gap-2">
-                    {% if q.is_current %}<span class="text-xs font-medium text-brand-600 bg-brand-50 px-2 py-1 rounded-full">Current</span>{% endif %}
+                    {% if q.is_current %}<span class="candy-badge">Current</span>{% endif %}
                     {% if q.estimated_tax > 0 and q.is_current and tax_obligation < q.estimated_tax %}
-                    <span class="inline-flex items-center gap-1 text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">
+                    <span class="inline-flex items-center gap-1 text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
                         Underfunded
                     </span>{% endif %}
                 </div>
             </div>
             {% set qm = {1:'Jan - Mar', 2:'Apr - Jun', 3:'Jul - Sep', 4:'Oct - Dec'} %}
-            <p class="text-xs text-gray-400 mb-4">{{ qm[q.quarter] }} {{ q.year }}</p>
-            <div class="space-y-3">
-                <div class="flex justify-between"><span class="text-sm text-gray-500">Income</span><span class="text-sm font-medium text-green-600">{{ currency | currency_symbol }}{{ q.income | money }}</span></div>
-                <div class="flex justify-between"><span class="text-sm text-gray-500">Deductions</span><span class="text-sm font-medium text-gray-600">{{ currency | currency_symbol }}{{ q.deductions | money }}</span></div>
-                <div class="border-t border-gray-100 pt-2"><div class="flex justify-between"><span class="text-sm text-gray-500">Net Income</span><span class="text-sm font-semibold text-gray-900">{{ currency | currency_symbol }}{{ q.net_income | money }}</span></div></div>
-                <div class="bg-amber-50 rounded-lg p-3"><div class="flex justify-between"><span class="text-sm font-medium text-amber-800">Est. Tax Owed</span><span class="text-sm font-bold text-amber-900">{{ currency | currency_symbol }}{{ q.estimated_tax | money }}</span></div></div>
+            <p class="text-xs text-gray-300 mb-4 font-medium relative z-10">{{ qm[q.quarter] }} {{ q.year }}</p>
+            <div class="space-y-3 relative z-10">
+                <div class="flex justify-between"><span class="text-sm text-gray-400 font-medium">Income</span><span class="text-sm font-bold text-green-500">{{ currency | currency_symbol }}{{ q.income | money }}</span></div>
+                <div class="flex justify-between"><span class="text-sm text-gray-400 font-medium">Deductions</span><span class="text-sm font-bold text-gray-500">{{ currency | currency_symbol }}{{ q.deductions | money }}</span></div>
+                <div class="border-t border-gray-100/50 pt-2"><div class="flex justify-between"><span class="text-sm text-gray-400 font-medium">Net Income</span><span class="text-sm font-extrabold text-gray-800">{{ currency | currency_symbol }}{{ q.net_income | money }}</span></div></div>
+                <div class="bg-amber-50/80 rounded-xl p-3"><div class="flex justify-between"><span class="text-sm font-semibold text-amber-700">Est. Tax</span><span class="text-sm font-extrabold text-amber-800">{{ currency | currency_symbol }}{{ q.estimated_tax | money }}</span></div></div>
             </div>
         </div>
         {% endfor %}
     </div>
 
     <!-- How It's Calculated -->
-    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-900 mb-3">How taxes are calculated</h2>
+    <div class="glass-card p-6 fade-up fade-up-delay-4">
+        <h2 class="text-lg font-extrabold text-gray-900 mb-4">How taxes are calculated &#x1F9E0;</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="p-4 bg-gray-50 rounded-xl">
-                <h3 class="text-sm font-semibold text-gray-900 mb-2">Quarterly Net Income</h3>
-                <p class="text-xs text-gray-600">Total income minus tax-deductible expenses for the quarter. Only expenses marked as "tax deductible" reduce your tax burden.</p>
+            <div class="p-5 bg-white/50 rounded-2xl">
+                <h3 class="text-sm font-bold text-gray-800 mb-2">Quarterly Net Income</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Total income minus tax-deductible expenses for the quarter. Only expenses marked as "tax deductible" reduce your tax burden.</p>
             </div>
-            <div class="p-4 bg-gray-50 rounded-xl">
-                <h3 class="text-sm font-semibold text-gray-900 mb-2">Estimated Tax</h3>
-                <p class="text-xs text-gray-600">Calculated as: Net Income &times; {{ (tax_rate * 100)|int }}%. This is your self-employment tax estimate. Adjust your rate in Settings.</p>
+            <div class="p-5 bg-white/50 rounded-2xl">
+                <h3 class="text-sm font-bold text-gray-800 mb-2">Estimated Tax</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Calculated as: Net Income &times; {{ (tax_rate * 100)|int }}%. This is your self-employment tax estimate. Adjust your rate in Settings.</p>
             </div>
-            <div class="p-4 bg-gray-50 rounded-xl">
-                <h3 class="text-sm font-semibold text-gray-900 mb-2">Safe to Spend</h3>
-                <p class="text-xs text-gray-600">Your total balance minus all estimated tax obligations. This is money you can safely spend without worrying about tax bills.</p>
+            <div class="p-5 bg-white/50 rounded-2xl">
+                <h3 class="text-sm font-bold text-gray-800 mb-2">Safe to Spend</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Your total balance minus all estimated tax obligations. This is money you can safely spend without worrying about tax bills.</p>
             </div>
         </div>
     </div>

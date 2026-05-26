@@ -4,6 +4,14 @@ from ..models import db, DEFAULT_INCOME_CATEGORIES, DEFAULT_EXPENSE_CATEGORIES
 
 settings_bp = Blueprint('settings', __name__)
 
+AVAILABLE_THEMES = {
+    'emerald': {'name': 'Emerald', 'desc': 'Fresh green, the default'},
+    'ocean': {'name': 'Ocean Blue', 'desc': 'Deep and professional'},
+    'sunset': {'name': 'Sunset Orange', 'desc': 'Warm and energetic'},
+    'rose': {'name': 'Rose Pink', 'desc': 'Bold and vibrant'},
+    'midnight': {'name': 'Midnight Slate', 'desc': 'Sleek and sophisticated'},
+}
+
 
 @settings_bp.route('/settings')
 @login_required
@@ -13,7 +21,10 @@ def index():
         income_categories=current_user.get_income_categories(),
         expense_categories=current_user.get_expense_categories(),
         default_income_categories=DEFAULT_INCOME_CATEGORIES,
-        default_expense_categories=DEFAULT_EXPENSE_CATEGORIES)
+        default_expense_categories=DEFAULT_EXPENSE_CATEGORIES,
+        available_themes=AVAILABLE_THEMES,
+        current_theme=current_user.theme or 'emerald',
+        dark_mode=current_user.dark_mode or False)
 
 
 @settings_bp.route('/settings/tax-rate', methods=['POST'])
@@ -104,6 +115,29 @@ def delete_expense_category():
         flash(f'Expense category "{name}" removed.', 'success')
     else:
         flash(f'Category "{name}" not found.', 'error')
+    return redirect(url_for('settings.index'))
+
+
+@settings_bp.route('/settings/theme', methods=['POST'])
+@login_required
+def update_theme():
+    theme = request.form.get('theme', 'emerald')
+    if theme in AVAILABLE_THEMES:
+        current_user.theme = theme
+        db.session.commit()
+        flash(f'Theme changed to {AVAILABLE_THEMES[theme]["name"]}.', 'success')
+    else:
+        flash('Invalid theme selection.', 'error')
+    return redirect(url_for('settings.index'))
+
+
+@settings_bp.route('/settings/dark-mode', methods=['POST'])
+@login_required
+def toggle_dark_mode():
+    dark = request.form.get('dark_mode', 'off')
+    current_user.dark_mode = (dark == 'on')
+    db.session.commit()
+    flash('Dark mode ' + ('enabled' if current_user.dark_mode else 'disabled') + '.', 'success')
     return redirect(url_for('settings.index'))
 
 

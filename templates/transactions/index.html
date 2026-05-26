@@ -1,52 +1,52 @@
 {% extends "base.html" %}
-{% block title %}Transactions - FreelanceCash{% endblock %}
+{% block title %}Transactions - GigLedger{% endblock %}
 {% block content %}
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-up relative z-50">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Transactions</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ transactions|length }} transaction{{ 's' if transactions|length != 1 else '' }} found</p>
+            <h1 class="text-2xl font-extrabold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Transactions</h1>
+            <p class="text-sm text-gray-400 mt-1 font-medium">{{ transactions|length }} transaction{{ 's' if transactions|length != 1 else '' }} found</p>
         </div>
         <div class="flex items-center gap-2">
-            <!-- Export Buttons -->
-            <div class="relative group">
-                <button class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg transition-colors text-sm hover:bg-gray-50">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <!-- Export Dropdown -->
+            <div class="relative z-[9999]">
+                <button type="button" onclick="toggleExportMenu()" class="inline-flex items-center gap-2 px-4 py-2.5 glass-card font-semibold rounded-xl transition-all text-sm hover:scale-105">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     Export
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    <svg class="w-3 h-3 text-gray-400 transition-transform" id="exportChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </button>
-                <div class="hidden group-hover:block absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-                    <a href="{{ url_port('transactions.export_csv') }}{% if selected_type %}?type={{ selected_type }}{% endif %}{% if selected_category %}{% if not selected_type %}?{% else %}&{% endif %}category={{ selected_category }}{% endif %}{% if selected_month %}{% if not selected_type and not selected_category %}?{% else %}&{% endif %}month={{ selected_month }}{% endif %}{% if selected_year %}{% if not selected_type and not selected_category and not selected_month %}?{% else %}&{% endif %}year={{ selected_year }}{% endif %}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-b border-gray-100">
-                        <div class="font-medium">Export as CSV</div>
-                        <div class="text-xs text-gray-400 mt-0.5">Spreadsheet-compatible format</div>
+                <div id="exportDropdown" class="export-dropdown glass-card rounded-2xl shadow-2xl overflow-hidden p-1">
+                    <a href="{{ url_port('transactions.export_csv') }}{% if selected_type %}?type={{ selected_type }}{% endif %}{% if selected_category %}{% if not selected_type %}?{% else %}&{% endif %}category={{ selected_category }}{% endif %}{% if selected_month %}{% if not selected_type and not selected_category %}?{% else %}&{% endif %}month={{ selected_month }}{% endif %}{% if selected_year %}{% if not selected_type and not selected_category and not selected_month %}?{% else %}&{% endif %}year={{ selected_year }}{% endif %}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-green-50/80 hover:text-green-700 rounded-xl transition-all">
+                        <div class="font-semibold">Export as CSV</div>
+                        <div class="text-xs text-gray-400 mt-0.5">Spreadsheet format</div>
                     </a>
-                    <a href="{{ url_port('transactions.export_pdf') }}{% if selected_type %}?type={{ selected_type }}{% endif %}{% if selected_category %}{% if not selected_type %}?{% else %}&{% endif %}category={{ selected_category }}{% endif %}{% if selected_month %}{% if not selected_type and not selected_category %}?{% else %}&{% endif %}month={{ selected_month }}{% endif %}{% if selected_year %}{% if not selected_type and not selected_category and not selected_month %}?{% else %}&{% endif %}year={{ selected_year }}{% endif %}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors">
-                        <div class="font-medium">Export as PDF</div>
-                        <div class="text-xs text-gray-400 mt-0.5">Printable report format</div>
+                    <a href="{{ url_port('transactions.export_pdf') }}{% if selected_type %}?type={{ selected_type }}{% endif %}{% if selected_category %}{% if not selected_type %}?{% else %}&{% endif %}category={{ selected_category }}{% endif %}{% if selected_month %}{% if not selected_type and not selected_category %}?{% else %}&{% endif %}month={{ selected_month }}{% endif %}{% if selected_year %}{% if not selected_type and not selected_category and not selected_month %}?{% else %}&{% endif %}year={{ selected_year }}{% endif %}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-red-50/80 hover:text-red-700 rounded-xl transition-all">
+                        <div class="font-semibold">Export as PDF</div>
+                        <div class="text-xs text-gray-400 mt-0.5">Printable report</div>
                     </a>
                 </div>
             </div>
-            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors text-sm">
+            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="candy-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                Add Transaction
+                Add
             </button>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+    <div class="glass-card p-4 fade-up fade-up-delay-1">
         <form method="GET" action="{{ url_port('transactions.list_transactions') }}" class="flex flex-wrap gap-3 items-end">
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                <select name="type" class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Type</label>
+                <select name="type" class="candy-input px-3 py-2 text-sm text-gray-900 focus:outline-none">
                     <option value="">All</option>
                     <option value="income" {% if selected_type == 'income' %}selected{% endif %}>Income</option>
                     <option value="expense" {% if selected_type == 'expense' %}selected{% endif %}>Expense</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
-                <select name="category" class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Category</label>
+                <select name="category" class="candy-input px-3 py-2 text-sm text-gray-900 focus:outline-none">
                     <option value="">All</option>
                     {% for cat in categories %}
                     <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
@@ -54,8 +54,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Month</label>
-                <select name="month" class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Month</label>
+                <select name="month" class="candy-input px-3 py-2 text-sm text-gray-900 focus:outline-none">
                     <option value="">All</option>
                     {% for m in range(1,13) %}
                     <option value="{{ m }}" {% if selected_month == m|string %}selected{% endif %}>{{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] }}</option>
@@ -63,102 +63,102 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Year</label>
-                <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Year</label>
+                <select name="year" class="candy-input px-3 py-2 text-sm text-gray-900 focus:outline-none">
                     <option value="">All</option>
                     <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
                     <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
                 </select>
             </div>
-            <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800">Filter</button>
-            <a href="{{ url_port('transactions.list_transactions') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium">Clear</a>
+            <button type="submit" class="candy-btn px-5 py-2 text-sm">Filter</button>
+            <a href="{{ url_port('transactions.list_transactions') }}" class="px-4 py-2 text-gray-400 hover:text-gray-600 text-sm font-semibold transition-colors">Clear</a>
         </form>
     </div>
 
-    <!-- Summary bar with tax impact -->
+    <!-- Summary bar -->
     {% if transactions %}
     {% set total_income = transactions | selectattr('amount', '>', 0) | map(attribute='amount') | sum %}
     {% set total_expenses = transactions | selectattr('amount', '<', 0) | map(attribute='amount') | map('abs') | sum %}
     {% set total_deductible = transactions | selectattr('is_tax_deductible') | selectattr('amount', '<', 0) | map(attribute='amount') | map('abs') | sum %}
     {% set tax_saving = total_deductible * current_user.default_tax_rate %}
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div class="bg-green-50 rounded-xl px-4 py-3 text-center">
-            <p class="text-xs text-green-600 font-medium">Total Income</p>
-            <p class="text-lg font-bold text-green-700">{{ currency | currency_symbol }}{{ total_income | money }}</p>
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 fade-up fade-up-delay-2">
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-green-500 font-semibold">Total Income</p>
+            <p class="text-lg font-extrabold text-green-600">{{ currency | currency_symbol }}{{ total_income | money }}</p>
         </div>
-        <div class="bg-red-50 rounded-xl px-4 py-3 text-center">
-            <p class="text-xs text-red-600 font-medium">Total Expenses</p>
-            <p class="text-lg font-bold text-red-700">{{ currency | currency_symbol }}{{ total_expenses | money }}</p>
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-red-400 font-semibold">Total Expenses</p>
+            <p class="text-lg font-extrabold text-red-500">{{ currency | currency_symbol }}{{ total_expenses | money }}</p>
         </div>
-        <div class="bg-brand-50 rounded-xl px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 font-medium">Deductible</p>
-            <p class="text-lg font-bold text-brand-700">{{ currency | currency_symbol }}{{ total_deductible | money }}</p>
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-brand-500 font-semibold">Deductible</p>
+            <p class="text-lg font-extrabold text-brand-600">{{ currency | currency_symbol }}{{ total_deductible | money }}</p>
         </div>
-        <div class="bg-green-50 rounded-xl px-4 py-3 text-center border border-green-200">
-            <p class="text-xs text-green-600 font-medium">Tax Saving</p>
-            <p class="text-lg font-bold text-green-700">{{ currency | currency_symbol }}{{ tax_saving | money }}</p>
-            <p class="text-[10px] text-green-500">from deductions at {{ (current_user.default_tax_rate * 100) | int }}%</p>
+        <div class="glass-card rounded-2xl px-4 py-3 text-center border border-green-200/50">
+            <p class="text-xs text-green-500 font-semibold">Tax Saving</p>
+            <p class="text-lg font-extrabold text-green-600">{{ currency | currency_symbol }}{{ tax_saving | money }}</p>
+            <p class="text-[10px] text-green-400 font-medium">at {{ (current_user.default_tax_rate * 100) | int }}%</p>
         </div>
-        <div class="bg-gray-50 rounded-xl px-4 py-3 text-center">
-            <p class="text-xs text-gray-600 font-medium">Net</p>
-            <p class="text-lg font-bold {% if transactions | map(attribute='amount') | sum >= 0 %}text-green-700{% else %}text-red-700{% endif %}">{{ currency | currency_symbol }}{{ transactions | map(attribute='amount') | sum | money }}</p>
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-gray-400 font-semibold">Net</p>
+            <p class="text-lg font-extrabold {% if transactions | map(attribute='amount') | sum >= 0 %}text-green-600{% else %}text-red-500{% endif %}">{{ currency | currency_symbol }}{{ transactions | map(attribute='amount') | sum | money }}</p>
         </div>
     </div>
     {% endif %}
 
     <!-- Transactions Table -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="glass-card overflow-hidden fade-up fade-up-delay-3">
         {% if transactions %}
         <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table class="w-full">
-                <thead class="sticky top-0 bg-gray-50 border-b border-gray-100 z-10">
+                <thead class="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-gray-100/50 z-10">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Deductible</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Tax Impact</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
+                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
+                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
+                        <th class="px-5 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
+                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Deductible</th>
+                        <th class="px-5 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Tax Impact</th>
+                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody class="divide-y divide-gray-100/50">
                     {% for tx in transactions %}
-                    <tr class="hover:bg-gray-50 transition-colors {% if tx.is_tax_deductible and tx.amount < 0 %}bg-green-50/30{% endif %}">
-                        <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tx.date.strftime('%b %d, %Y') }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900 font-medium max-w-xs truncate">{{ tx.description or 'No description' }}</td>
-                        <td class="px-4 py-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {% if tx.amount > 0 %}bg-green-50 text-green-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                    <tr class="hover:bg-white/50 transition-all {% if tx.is_tax_deductible and tx.amount < 0 %}bg-green-50/20{% endif %}">
+                        <td class="px-5 py-3.5 text-sm text-gray-500 whitespace-nowrap font-medium">{{ tx.date.strftime('%b %d, %Y') }}</td>
+                        <td class="px-5 py-3.5 text-sm text-gray-800 font-semibold max-w-xs truncate">{{ tx.description or 'No description' }}</td>
+                        <td class="px-5 py-3.5">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {% if tx.amount > 0 %}bg-green-50 text-green-600{% else %}bg-gray-100/80 text-gray-600{% endif %}">
                                 {{ tx.category or 'Other' }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-sm font-semibold text-right whitespace-nowrap {% if tx.amount > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        <td class="px-5 py-3.5 text-sm font-extrabold text-right whitespace-nowrap {% if tx.amount > 0 %}text-green-500{% else %}text-red-500{% endif %}">
                             {% if tx.amount > 0 %}+{% endif %}{{ currency | currency_symbol }}{{ tx.amount|abs | money }}
                         </td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-5 py-3.5 text-center">
                             {% if tx.is_tax_deductible and tx.amount < 0 %}
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                                 Yes
                             </span>
                             {% else %}
-                            <span class="text-xs text-gray-400">No</span>
+                            <span class="text-xs text-gray-300 font-medium">No</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                        <td class="px-5 py-3.5 text-right whitespace-nowrap">
                             {% if tx.is_tax_deductible and tx.amount < 0 %}
-                            <span class="text-xs font-medium text-green-600">-{{ currency | currency_symbol }}{{ (tx.amount|abs * current_user.default_tax_rate) | money }}</span>
-                            <p class="text-[10px] text-gray-400">reduces tax</p>
+                            <span class="text-xs font-bold text-green-500">-{{ currency | currency_symbol }}{{ (tx.amount|abs * current_user.default_tax_rate) | money }}</span>
+                            <p class="text-[10px] text-gray-300">reduces tax</p>
                             {% elif tx.amount > 0 %}
-                            <span class="text-xs text-amber-600">+{{ currency | currency_symbol }}{{ (tx.amount * current_user.default_tax_rate) | money }}</span>
-                            <p class="text-[10px] text-gray-400">adds to tax</p>
+                            <span class="text-xs font-bold text-amber-500">+{{ currency | currency_symbol }}{{ (tx.amount * current_user.default_tax_rate) | money }}</span>
+                            <p class="text-[10px] text-gray-300">adds to tax</p>
                             {% else %}
-                            <span class="text-xs text-gray-400">-</span>
+                            <span class="text-xs text-gray-300">-</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-5 py-3.5 text-center">
                             <form method="POST" action="{{ url_port('transactions.delete', id=tx.id) }}" onsubmit="return confirm('Delete this transaction?')" class="inline">
-                                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors p-1">
+                                <button type="submit" class="text-gray-300 hover:text-red-500 transition-all p-1 hover:scale-110">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                 </button>
                             </form>
@@ -170,12 +170,12 @@
         </div>
         {% else %}
         <div class="text-center py-16">
-            <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+            <div class="mx-auto w-16 h-16 glass-card rounded-3xl flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
             </div>
-            <h3 class="text-gray-900 font-semibold mb-1">No transactions found</h3>
-            <p class="text-sm text-gray-500 mb-4">Add your first transaction to get started.</p>
-            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700">
+            <h3 class="text-gray-800 font-bold mb-1">No transactions found</h3>
+            <p class="text-sm text-gray-400 mb-4">Add your first transaction to get started.</p>
+            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="candy-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                 Add Transaction
             </button>
@@ -186,61 +186,61 @@
 
 <!-- Add Transaction Modal -->
 <div id="addModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="document.getElementById('addModal').classList.add('hidden')"></div>
-    <div class="relative bg-white rounded-2xl p-6 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="document.getElementById('addModal').classList.add('hidden')"></div>
+    <div class="relative glass-card rounded-3xl p-7 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" style="background:rgba(255,255,255,0.9)">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-bold text-gray-900">Add Transaction</h2>
-            <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+            <h2 class="text-lg font-extrabold text-gray-900">Add Transaction &#x2728;</h2>
+            <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-gray-300 hover:text-gray-600 transition-colors p-1">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
         <form method="POST" action="{{ url_port('transactions.add') }}" id="modalForm" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Type</label>
                 <div class="flex gap-2">
                     <label class="flex-1 cursor-pointer">
                         <input type="radio" name="type" value="income" class="peer sr-only" checked onchange="updateModalCategories()">
-                        <div class="text-center py-2.5 rounded-lg border-2 border-gray-200 peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 text-sm font-medium transition-all">Income</div>
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-green-400 peer-checked:bg-green-50/80 peer-checked:text-green-700 text-sm font-semibold transition-all">Income</div>
                     </label>
                     <label class="flex-1 cursor-pointer">
                         <input type="radio" name="type" value="expense" class="peer sr-only" onchange="updateModalCategories()">
-                        <div class="text-center py-2.5 rounded-lg border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-700 text-sm font-medium transition-all">Expense</div>
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-red-400 peer-checked:bg-red-50/80 peer-checked:text-red-700 text-sm font-semibold transition-all">Expense</div>
                     </label>
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Amount ({{ currency }})</label>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Amount ({{ currency }})</label>
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">{{ currency | currency_symbol }}</span>
-                    <input type="number" name="amount" id="modal_amount" step="0.01" min="0.01" required class="block w-full pl-7 pr-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0.00">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium">{{ currency | currency_symbol }}</span>
+                    <input type="number" name="amount" id="modal_amount" step="0.01" min="0.01" required class="candy-input block w-full pl-7 pr-3 py-2.5 text-gray-900 focus:outline-none" placeholder="0.00">
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                <input type="date" name="date" id="modal_date" required class="block w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Date</label>
+                <input type="date" name="date" id="modal_date" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select name="category" id="modal_category" class="block w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Category</label>
+                <select name="category" id="modal_category" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <input type="text" name="description" class="block w-full px-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="What was this for?">
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Description</label>
+                <input type="text" name="description" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none" placeholder="What was this for?">
             </div>
             <div id="modal_deductible_section" class="hidden">
                 <div class="flex items-center gap-2">
                     <input type="checkbox" name="is_tax_deductible" id="m_ded" class="h-4 w-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500" onchange="updateModalTaxImpact()">
-                    <label for="m_ded" class="text-sm text-gray-700">Tax deductible expense</label>
+                    <label for="m_ded" class="text-sm font-medium text-gray-600">Tax deductible &#x1F4B0;</label>
                 </div>
-                <div id="modal_tax_impact" class="hidden mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p class="text-xs text-green-700 font-medium">Tax savings: <span id="modal_tax_saving" class="font-bold">{{ currency | currency_symbol }}0.00</span></p>
-                    <p class="text-xs text-green-600 mt-1">This deduction reduces your taxable income, saving you <span id="modal_tax_pct">{{ (current_user.default_tax_rate * 100) | int }}</span>% in taxes.</p>
+                <div id="modal_tax_impact" class="hidden mt-2 p-3 bg-green-50/80 backdrop-blur border border-green-200 rounded-xl">
+                    <p class="text-xs text-green-700 font-semibold">Tax savings: <span id="modal_tax_saving" class="font-extrabold">{{ currency | currency_symbol }}0.00</span></p>
+                    <p class="text-xs text-green-600 mt-1">Reduces your taxable income by <span id="modal_tax_pct">{{ (current_user.default_tax_rate * 100) | int }}</span>%</p>
                 </div>
             </div>
             <div class="flex gap-3 pt-2">
-                <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="flex-1 py-2.5 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="submit" class="flex-1 py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg text-sm">Add</button>
+                <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="flex-1 py-3 px-4 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all">Cancel</button>
+                <button type="submit" class="candy-btn flex-1 py-3 px-4 text-sm">Add &#x2728;</button>
             </div>
         </form>
     </div>
@@ -249,6 +249,28 @@
 
 {% block scripts %}
 <script>
+    // Export dropdown toggle
+    function toggleExportMenu() {
+        var dd = document.getElementById('exportDropdown');
+        var chevron = document.getElementById('exportChevron');
+        dd.classList.toggle('open');
+        if (dd.classList.contains('open')) {
+            chevron.style.transform = 'rotate(180deg)';
+        } else {
+            chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        var dd = document.getElementById('exportDropdown');
+        var btn = e.target.closest('[onclick="toggleExportMenu()"]');
+        if (!btn && dd && dd.classList.contains('open')) {
+            dd.classList.remove('open');
+            var chevron = document.getElementById('exportChevron');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+    });
+
     var modalDate = document.getElementById('modal_date');
     if (modalDate) modalDate.value = new Date().toISOString().split('T')[0];
 
@@ -262,22 +284,10 @@
         var select = document.getElementById('modal_category');
         var dedSection = document.getElementById('modal_deductible_section');
         var cats = type === 'income' ? incomeCategories : expenseCategories;
-
         select.innerHTML = '';
-        cats.forEach(function(cat) {
-            var opt = document.createElement('option');
-            opt.value = cat;
-            opt.textContent = cat;
-            select.appendChild(opt);
-        });
-
-        if (type === 'expense') {
-            dedSection.classList.remove('hidden');
-        } else {
-            dedSection.classList.add('hidden');
-            document.getElementById('m_ded').checked = false;
-            document.getElementById('modal_tax_impact').classList.add('hidden');
-        }
+        cats.forEach(function(cat) { var opt = document.createElement('option'); opt.value = cat; opt.textContent = cat; select.appendChild(opt); });
+        if (type === 'expense') { dedSection.classList.remove('hidden'); }
+        else { dedSection.classList.add('hidden'); document.getElementById('m_ded').checked = false; document.getElementById('modal_tax_impact').classList.add('hidden'); }
         updateModalTaxImpact();
     }
 
@@ -286,15 +296,12 @@
         var amountInput = document.getElementById('modal_amount');
         var impactDiv = document.getElementById('modal_tax_impact');
         var savingSpan = document.getElementById('modal_tax_saving');
-
         if (dedChecked && amountInput.value) {
             var amount = parseFloat(amountInput.value) || 0;
             var saving = amount * taxRate;
             savingSpan.textContent = currencySymbol + saving.toFixed(2);
             impactDiv.classList.remove('hidden');
-        } else {
-            impactDiv.classList.add('hidden');
-        }
+        } else { impactDiv.classList.add('hidden'); }
     }
 
     document.getElementById('modal_amount').addEventListener('input', updateModalTaxImpact);

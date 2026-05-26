@@ -24,6 +24,8 @@ class User(UserMixin, db.Model):
     currency = db.Column(db.String(3), default='USD')
     custom_income_categories = db.Column(db.Text, default='')   # comma-separated
     custom_expense_categories = db.Column(db.Text, default='')  # comma-separated
+    theme = db.Column(db.String(20), default='emerald')  # theme name
+    dark_mode = db.Column(db.Boolean, default=False)      # dark mode toggle
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     transactions = db.relationship('Transaction', backref='user', lazy=True)

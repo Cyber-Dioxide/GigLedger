@@ -1,47 +1,129 @@
 {% extends "base.html" %}
-{% block title %}Settings - FreelanceCash{% endblock %}
+{% block title %}Settings - GigLedger{% endblock %}
+{% block head %}
+<style>
+    :root, [data-theme="emerald"] {
+        --theme-emerald-100:#d1fae5;--theme-emerald-400:#34d399;--theme-emerald-500:#10b981;
+        --theme-emerald-600:#059669;--theme-emerald-700:#047857;
+        --theme-ocean-100:#dbeafe;--theme-ocean-400:#60a5fa;--theme-ocean-500:#3b82f6;
+        --theme-ocean-600:#2563eb;--theme-ocean-700:#1d4ed8;
+        --theme-sunset-100:#ffedd5;--theme-sunset-400:#fb923c;--theme-sunset-500:#f97316;
+        --theme-sunset-600:#ea580c;--theme-sunset-700:#c2410c;
+        --theme-rose-100:#ffe4e6;--theme-rose-400:#fb7185;--theme-rose-500:#f43f5e;
+        --theme-rose-600:#e11d48;--theme-rose-700:#be123c;
+        --theme-midnight-100:#f1f5f9;--theme-midnight-400:#94a3b8;--theme-midnight-500:#64748b;
+        --theme-midnight-600:#475569;--theme-midnight-700:#334155;
+    }
+    [data-dark="true"] .theme-card-active {
+        background: rgba(139,92,246,0.15) !important;
+        border-color: rgba(139,92,246,0.5) !important;
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="space-y-6 max-w-2xl">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
-        <p class="text-sm text-gray-500 mt-1">Manage your account and preferences</p>
+    <div class="fade-up">
+        <h1 class="text-2xl font-extrabold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Settings</h1>
+        <p class="text-sm text-gray-400 mt-1 font-medium">Make it yours &#x2728;</p>
     </div>
 
-    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Profile</h2>
+    <!-- Profile -->
+    <div class="glass-card p-6 fade-up fade-up-delay-1">
+        <h2 class="text-lg font-extrabold text-gray-900 mb-4">Profile</h2>
         <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xl font-semibold">{{ user.email[0]|upper }}</div>
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-300 to-brand-500 text-white flex items-center justify-center text-xl font-bold shadow-lg">{{ user.email[0]|upper }}</div>
             <div>
-                <p class="font-medium text-gray-900">{{ user.email }}</p>
-                <p class="text-sm text-gray-500">Member since {{ user.created_at.strftime('%b %Y') if user.created_at else 'N/A' }}</p>
+                <p class="font-bold text-gray-900">{{ user.email }}</p>
+                <p class="text-sm text-gray-400 font-medium">Member since {{ user.created_at.strftime('%b %Y') if user.created_at else 'N/A' }}</p>
             </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-900 mb-2">Tax Rate</h2>
-        <p class="text-sm text-gray-500 mb-6">Your default tax rate is used to calculate quarterly estimates and deductible savings. US freelancers typically set aside 25-35% for self-employment taxes.</p>
+    <!-- Dark Mode Toggle -->
+    <div class="glass-card p-6 fade-up fade-up-delay-1">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-extrabold text-gray-900">Dark Mode</h2>
+                <p class="text-sm text-gray-400 font-medium mt-1">Easy on the eyes. Works with any theme.</p>
+            </div>
+            <form method="POST" action="{{ url_port('settings.toggle_dark_mode') }}">
+                <input type="hidden" name="dark_mode" value="{{ 'off' if dark_mode else 'on' }}">
+                <button type="submit" class="dark-toggle {% if dark_mode %}active{% endif %}" style="width:56px;height:30px;">
+                    <div class="toggle-knob" style="width:24px;height:24px;{% if dark_mode %}transform:translateX(26px){% endif %}">
+                        {% if dark_mode %}
+                        <svg class="w-3.5 h-3.5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /></svg>
+                        {% else %}
+                        <svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" /></svg>
+                        {% endif %}
+                    </div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Theme Picker -->
+    <div class="glass-card p-6 fade-up fade-up-delay-2">
+        <h2 class="text-lg font-extrabold text-gray-900 mb-1">Theme</h2>
+        <p class="text-sm text-gray-400 mb-5 font-medium">Pick your vibe. Changes apply everywhere instantly.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {% for theme_id, theme_info in available_themes.items() %}
+            <form method="POST" action="{{ url_port('settings.update_theme') }}" class="group">
+                <input type="hidden" name="theme" value="{{ theme_id }}">
+                <button type="submit" class="w-full text-left p-4 rounded-2xl border-2 transition-all duration-300 {% if current_theme == theme_id %}border-brand-400 bg-brand-50/50 shadow-lg scale-[1.02] theme-card-active{% else %}border-gray-200/50 hover:border-gray-300 hover:shadow-md hover:scale-[1.01]{% endif %}">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="flex gap-1">
+                                <div class="w-6 h-6 rounded-lg shadow-sm" style="background-color: var(--theme-{{ theme_id }}-600, #059669)"></div>
+                                <div class="w-6 h-6 rounded-lg shadow-sm" style="background-color: var(--theme-{{ theme_id }}-400, #34d399)"></div>
+                                <div class="w-6 h-6 rounded-lg shadow-sm" style="background-color: var(--theme-{{ theme_id }}-100, #d1fae5)"></div>
+                            </div>
+                            <span class="font-bold text-gray-900 text-sm">{{ theme_info.name }}</span>
+                        </div>
+                        {% if current_theme == theme_id %}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-brand-100 text-brand-700">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                            Active
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-gray-400 font-medium">{{ theme_info.desc }}</p>
+                    <div class="mt-3 flex gap-1 h-2.5 rounded-full overflow-hidden">
+                        <div class="flex-1 rounded-full" style="background-color: var(--theme-{{ theme_id }}-100, #d1fae5)"></div>
+                        <div class="w-1/3 rounded-full" style="background-color: var(--theme-{{ theme_id }}-500, #10b981)"></div>
+                        <div class="w-1/4 rounded-full" style="background-color: var(--theme-{{ theme_id }}-700, #047857)"></div>
+                    </div>
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tax Rate -->
+    <div class="glass-card p-6 fade-up fade-up-delay-3">
+        <h2 class="text-lg font-extrabold text-gray-900 mb-2">Tax Rate</h2>
+        <p class="text-sm text-gray-400 mb-6 font-medium">US freelancers typically set aside 25-35% for self-employment taxes.</p>
         <form method="POST" action="{{ url_port('settings.update_tax_rate') }}" class="flex items-end gap-4">
             <div class="flex-1">
-                <label for="tax_rate" class="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
-                <input type="number" id="tax_rate" name="tax_rate" min="0" max="100" step="1" value="{{ tax_rate_percent }}" class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                <label for="tax_rate" class="block text-sm font-semibold text-gray-600 mb-1.5">Tax Rate (%)</label>
+                <input type="number" id="tax_rate" name="tax_rate" min="0" max="100" step="1" value="{{ tax_rate_percent }}" class="candy-input block w-full px-4 py-2.5 text-gray-900 focus:outline-none">
             </div>
-            <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors text-sm">Update</button>
+            <button type="submit" class="candy-btn px-6 py-2.5 text-sm">Update</button>
         </form>
         <div class="mt-4 flex gap-2">
-            <button onclick="document.getElementById('tax_rate').value='25'" class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">25%</button>
-            <button onclick="document.getElementById('tax_rate').value='30'" class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">30%</button>
-            <button onclick="document.getElementById('tax_rate').value='35'" class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">35%</button>
+            <button onclick="document.getElementById('tax_rate').value='25'" class="px-4 py-2 text-xs font-bold text-gray-500 glass-card rounded-xl hover:scale-105 transition-all">25%</button>
+            <button onclick="document.getElementById('tax_rate').value='30'" class="px-4 py-2 text-xs font-bold text-gray-500 glass-card rounded-xl hover:scale-105 transition-all">30%</button>
+            <button onclick="document.getElementById('tax_rate').value='35'" class="px-4 py-2 text-xs font-bold text-gray-500 glass-card rounded-xl hover:scale-105 transition-all">35%</button>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-900 mb-2">Currency</h2>
-        <p class="text-sm text-gray-500 mb-6">Select your preferred display currency.</p>
+    <!-- Currency -->
+    <div class="glass-card p-6 fade-up fade-up-delay-4">
+        <h2 class="text-lg font-extrabold text-gray-900 mb-2">Currency</h2>
+        <p class="text-sm text-gray-400 mb-6 font-medium">Select your preferred display currency.</p>
         <form method="POST" action="{{ url_port('settings.update_currency') }}" class="flex items-end gap-4">
             <div class="flex-1">
-                <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">Display Currency</label>
-                <select id="currency" name="currency" class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                <label for="currency" class="block text-sm font-semibold text-gray-600 mb-1.5">Display Currency</label>
+                <select id="currency" name="currency" class="candy-input block w-full px-4 py-2.5 text-gray-900 focus:outline-none">
                     <option value="USD" {% if user.currency == 'USD' %}selected{% endif %}>USD - US Dollar</option>
                     <option value="EUR" {% if user.currency == 'EUR' %}selected{% endif %}>EUR - Euro</option>
                     <option value="GBP" {% if user.currency == 'GBP' %}selected{% endif %}>GBP - British Pound</option>
@@ -51,39 +133,35 @@
                     <option value="JPY" {% if user.currency == 'JPY' %}selected{% endif %}>JPY - Japanese Yen</option>
                 </select>
             </div>
-            <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors text-sm">Update</button>
+            <button type="submit" class="candy-btn px-6 py-2.5 text-sm">Update</button>
         </form>
     </div>
 
     <!-- Income Categories -->
-    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+    <div class="glass-card p-6 fade-up fade-up-delay-4">
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-lg font-semibold text-gray-900">Income Categories</h2>
-            <span class="text-xs text-gray-400">Used in Quick Add and Transaction forms</span>
+            <h2 class="text-lg font-extrabold text-gray-900">Income Categories</h2>
+            <span class="text-xs text-gray-300 font-medium">Quick Add & Transaction forms</span>
         </div>
-        <p class="text-sm text-gray-500 mb-4">Add or remove categories for your income sources. Changes take effect immediately.</p>
-
-        <!-- Add new category -->
+        <p class="text-sm text-gray-400 mb-4 font-medium">Add or remove categories for your income sources.</p>
         <form method="POST" action="{{ url_port('settings.add_income_category') }}" class="flex gap-2 mb-4">
-            <input type="text" name="category_name" placeholder="New income category..." required class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-            <button type="submit" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg text-sm">Add</button>
+            <input type="text" name="category_name" placeholder="New income category..." required class="candy-input flex-1 px-4 py-2.5 text-gray-900 focus:outline-none text-sm">
+            <button type="submit" class="candy-btn px-4 py-2.5 text-sm">Add</button>
         </form>
-
-        <!-- Current categories -->
         <div class="flex flex-wrap gap-2">
             {% for cat in income_categories %}
-            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50/80 text-green-700 rounded-xl text-sm font-bold">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>
                 {{ cat }}
                 {% if cat not in default_income_categories %}
                 <form method="POST" action="{{ url_port('settings.delete_income_category') }}" class="inline" onsubmit="return confirm('Remove {{ cat }}?')">
                     <input type="hidden" name="category_name" value="{{ cat }}">
-                    <button type="submit" class="text-green-400 hover:text-red-500 transition-colors ml-1">
+                    <button type="submit" class="text-green-300 hover:text-red-500 transition-colors ml-1">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </form>
                 {% else %}
-                <span class="text-green-300 ml-1" title="Default category">&#8226;</span>
+                <span class="text-green-200 ml-1">&#8226;</span>
                 {% endif %}
             </div>
             {% endfor %}
@@ -91,34 +169,30 @@
     </div>
 
     <!-- Expense Categories -->
-    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+    <div class="glass-card p-6 fade-up fade-up-delay-5">
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-lg font-semibold text-gray-900">Expense Categories</h2>
-            <span class="text-xs text-gray-400">Tax-deductible expenses reduce your tax burden</span>
+            <h2 class="text-lg font-extrabold text-gray-900">Expense Categories</h2>
+            <span class="text-xs text-gray-300 font-medium">Tax-deductible expenses reduce tax</span>
         </div>
-        <p class="text-sm text-gray-500 mb-4">Add or remove categories for your business expenses. Mark expenses as deductible when adding them.</p>
-
-        <!-- Add new category -->
+        <p class="text-sm text-gray-400 mb-4 font-medium">Add or remove categories for your business expenses.</p>
         <form method="POST" action="{{ url_port('settings.add_expense_category') }}" class="flex gap-2 mb-4">
-            <input type="text" name="category_name" placeholder="New expense category..." required class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-            <button type="submit" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg text-sm">Add</button>
+            <input type="text" name="category_name" placeholder="New expense category..." required class="candy-input flex-1 px-4 py-2.5 text-gray-900 focus:outline-none text-sm">
+            <button type="submit" class="candy-btn px-4 py-2.5 text-sm">Add</button>
         </form>
-
-        <!-- Current categories -->
         <div class="flex flex-wrap gap-2">
             {% for cat in expense_categories %}
-            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-sm font-medium">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50/80 text-red-600 rounded-xl text-sm font-bold">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6" /></svg>
                 {{ cat }}
                 {% if cat not in default_expense_categories %}
                 <form method="POST" action="{{ url_port('settings.delete_expense_category') }}" class="inline" onsubmit="return confirm('Remove {{ cat }}?')">
                     <input type="hidden" name="category_name" value="{{ cat }}">
-                    <button type="submit" class="text-red-400 hover:text-red-700 transition-colors ml-1">
+                    <button type="submit" class="text-red-300 hover:text-red-700 transition-colors ml-1">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </form>
                 {% else %}
-                <span class="text-red-300 ml-1" title="Default category">&#8226;</span>
+                <span class="text-red-200 ml-1">&#8226;</span>
                 {% endif %}
             </div>
             {% endfor %}
@@ -126,18 +200,18 @@
     </div>
 
     <!-- Reset categories -->
-    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-900 mb-2">Reset Categories</h2>
-        <p class="text-sm text-gray-500 mb-4">Reset all categories back to the default list. Your custom categories will be removed but existing transactions are not affected.</p>
-        <form method="POST" action="{{ url_port('settings.reset_categories') }}" onsubmit="return confirm('Reset all categories to defaults? Your custom categories will be removed.')">
-            <button type="submit" class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Reset to Defaults</button>
+    <div class="glass-card p-6 fade-up fade-up-delay-5">
+        <h2 class="text-lg font-extrabold text-gray-900 mb-2">Reset Categories</h2>
+        <p class="text-sm text-gray-400 mb-4 font-medium">Reset all categories to defaults. Custom categories removed, existing transactions not affected.</p>
+        <form method="POST" action="{{ url_port('settings.reset_categories') }}" onsubmit="return confirm('Reset all categories to defaults?')">
+            <button type="submit" class="px-5 py-2.5 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:scale-105 transition-all">Reset to Defaults</button>
         </form>
     </div>
 
-    <div class="bg-white rounded-2xl p-6 border border-red-100 shadow-sm">
-        <h2 class="text-lg font-semibold text-red-700 mb-2">Danger Zone</h2>
-        <p class="text-sm text-gray-500 mb-4">These actions are irreversible.</p>
-        <a href="{{ url_port('auth.logout') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-700 font-medium rounded-lg hover:bg-red-50 transition-colors text-sm">
+    <div class="glass-card p-6 border-2 border-red-200/50 fade-up fade-up-delay-5">
+        <h2 class="text-lg font-extrabold text-red-500 mb-2">Danger Zone</h2>
+        <p class="text-sm text-gray-400 mb-4 font-medium">These actions are irreversible.</p>
+        <a href="{{ url_port('auth.logout') }}" class="inline-flex items-center gap-2 px-5 py-2.5 glass-card rounded-xl text-sm font-bold text-red-500 hover:bg-red-50/50 transition-all hover:scale-105">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Sign Out
         </a>

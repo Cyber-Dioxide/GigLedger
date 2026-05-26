@@ -121,6 +121,10 @@ def _migrate_db(db):
         cursor.execute("ALTER TABLE users ADD COLUMN custom_income_categories TEXT DEFAULT ''")
     if 'custom_expense_categories' not in existing_columns:
         cursor.execute("ALTER TABLE users ADD COLUMN custom_expense_categories TEXT DEFAULT ''")
+    if 'theme' not in existing_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN theme VARCHAR(20) DEFAULT 'emerald'")
+    if 'dark_mode' not in existing_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN dark_mode BOOLEAN DEFAULT 0")
 
     conn.commit()
     conn.close()

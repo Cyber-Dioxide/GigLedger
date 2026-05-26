@@ -13,9 +13,8 @@
 ---
 
 > **Stop guessing how much tax you owe.** GigLedger is a self-hosted finance dashboard built for freelancers, contractors, and gig workers who want a clear picture of income, expenses, and quarterly tax obligations — without the complexity of full accounting software.
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-28" src="https://github.com/user-attachments/assets/e7a14609-40da-4573-a126-60a8f935f620" />
 
-
+![Dashboard Screenshot](screenshots/dashboard.png)
 
 ---
 
@@ -44,6 +43,7 @@ No more setting aside random percentages. No more spreadsheet gymnastics. Just c
 - **Runway Calculator** — Color-coded survival months (green ≥6, yellow ≥3, red <3)
 - **Bank Balance & Net This Month** cards
 
+![Quick Add Screenshot](screenshots/quick-add.png)
 
 ### 💸 Transactions
 - **Full transaction table** with filter bar (type, category, month, year)
@@ -53,6 +53,7 @@ No more setting aside random percentages. No more spreadsheet gymnastics. Just c
 - **Add Transaction modal** — Dynamic categories, real-time tax savings preview
 - **Export to PDF or CSV** — Filtered reports with full detail and summary rows
 
+![Transactions Screenshot](screenshots/transactions.png)
 
 ### 🧾 Quarterly Tax Estimator
 - **Q1–Q4 breakdown cards** — Income, Deductions, Net Income, Estimated Tax per quarter
@@ -60,7 +61,7 @@ No more setting aside random percentages. No more spreadsheet gymnastics. Just c
 - **One-click recalculate** — Persists estimates to the database
 - **"How taxes are calculated" explainer** — Transparent methodology section
 
-
+![Taxes Screenshot](screenshots/taxes.png)
 
 ### ⚙️ Settings
 - **Tax Rate** — Custom percentage with quick presets (25%, 30%, 35%)
@@ -68,7 +69,7 @@ No more setting aside random percentages. No more spreadsheet gymnastics. Just c
 - **Custom Categories** — Add, remove, or reset income and expense categories
 - **Profile** — Email and member-since display
 
-
+![Settings Screenshot](screenshots/settings.png)
 
 ### 🔐 Authentication
 - Secure login with Flask-Login + Flask-Bcrypt
@@ -210,12 +211,14 @@ gigledger/
 ## 🖼 Screenshots
 
 > **Tip:** Add your own screenshots by placing images in a `screenshots/` folder at the repo root and updating the image paths above.
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-46" src="https://github.com/user-attachments/assets/08b06266-57b0-4ca2-b973-7227c22c3085" />
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-37" src="https://github.com/user-attachments/assets/51f0efd5-9ef3-4b62-915f-4bed84d4a615" />
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-33" src="https://github.com/user-attachments/assets/6268d2e2-0065-4444-aa43-94f4bde4747c" />
-<img width="3441" height="1356" alt="Screenshot from 2026-05-26 09-42-28" src="https://github.com/user-attachments/assets/9a6a871e-00b4-4fbf-8d15-871b76dd04b9" />
 
-
+| Page | Description |
+|---|---|
+| ![Dashboard](screenshots/dashboard.png) | Main dashboard with hero cards and charts |
+| ![Quick Add](screenshots/quick-add.png) | Quick Add form with real-time tax impact |
+| ![Transactions](screenshots/transactions.png) | Filterable transaction table with export |
+| ![Taxes](screenshots/taxes.png) | Quarterly tax estimator |
+| ![Settings](screenshots/settings.png) | Customizable settings and categories |
 
 ---
 
@@ -253,6 +256,4 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ⭐ Star this repo if it helped you!
 
-## Contact
-For any help/support, feel free to contact me on Telegram @cyberoxide, Instagram @coding_memz, Whatsapp +447598820751
 </div>

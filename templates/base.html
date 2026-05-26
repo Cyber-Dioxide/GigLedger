@@ -1,77 +1,645 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full" data-theme="{{ current_user.theme if current_user.is_authenticated else 'emerald' }}" data-dark="{{ 'true' if current_user.is_authenticated and current_user.dark_mode else 'false' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}FreelanceCash{% endblock %}</title>
+    <title>{% block title %}GigLedger{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script>
+        const THEMES = {
+            emerald: {
+                50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',
+                500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b'
+            },
+            ocean: {
+                50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',
+                500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a'
+            },
+            sunset: {
+                50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',
+                500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12'
+            },
+            rose: {
+                50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',
+                500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'
+            },
+            midnight: {
+                50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',
+                500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a'
+            }
+        };
+        const activeTheme = document.documentElement.getAttribute('data-theme') || 'emerald';
+        const brandColors = THEMES[activeTheme] || THEMES.emerald;
         tailwind.config = {
-            theme: { extend: { colors: {
-                brand: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d' }
-            }}}
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: brandColors }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
-        .nav-link { transition: all 0.2s ease; }
-        .nav-link:hover { transform: translateX(4px); }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-        .htmx-indicator { display: none; }
-        .htmx-request .htmx-indicator { display: inline-block; }
-        .htmx-request.htmx-indicator { display: inline-block; }
-        .fade-in { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        /* ====== THEME CSS VARIABLES ====== */
+        :root, [data-theme="emerald"] {
+            --brand-50:#ecfdf5;--brand-100:#d1fae5;--brand-200:#a7f3d0;--brand-300:#6ee7b7;
+            --brand-400:#34d399;--brand-500:#10b981;--brand-600:#059669;--brand-700:#047857;
+            --brand-800:#065f46;--brand-900:#064e3b;
+        }
+        [data-theme="ocean"] {
+            --brand-50:#eff6ff;--brand-100:#dbeafe;--brand-200:#bfdbfe;--brand-300:#93c5fd;
+            --brand-400:#60a5fa;--brand-500:#3b82f6;--brand-600:#2563eb;--brand-700:#1d4ed8;
+            --brand-800:#1e40af;--brand-900:#1e3a8a;
+        }
+        [data-theme="sunset"] {
+            --brand-50:#fff7ed;--brand-100:#ffedd5;--brand-200:#fed7aa;--brand-300:#fdba74;
+            --brand-400:#fb923c;--brand-500:#f97316;--brand-600:#ea580c;--brand-700:#c2410c;
+            --brand-800:#9a3412;--brand-900:#7c2d12;
+        }
+        [data-theme="rose"] {
+            --brand-50:#fff1f2;--brand-100:#ffe4e6;--brand-200:#fecdd3;--brand-300:#fda4af;
+            --brand-400:#fb7185;--brand-500:#f43f5e;--brand-600:#e11d48;--brand-700:#be123c;
+            --brand-800:#9f1239;--brand-900:#881337;
+        }
+        [data-theme="midnight"] {
+            --brand-50:#f8fafc;--brand-100:#f1f5f9;--brand-200:#e2e8f0;--brand-300:#cbd5e1;
+            --brand-400:#94a3b8;--brand-500:#64748b;--brand-600:#475569;--brand-700:#334155;
+            --brand-800:#1e293b;--brand-900:#0f172a;
+        }
+
+        /* ====== SEMANTIC UI VARIABLES (LIGHT) ====== */
+        :root {
+            --bg-card: rgba(255,255,255,0.7);
+            --bg-card-hover: rgba(255,255,255,0.85);
+            --bg-card-alt: rgba(255,255,255,0.75);
+            --bg-sidebar: rgba(255,255,255,0.85);
+            --bg-input: rgba(255,255,255,0.8);
+            --bg-input-focus: rgba(255,255,255,0.95);
+            --bg-inner: rgba(255,255,255,0.5);
+            --bg-overlay: rgba(0,0,0,0.3);
+            --bg-green: rgba(240,253,244,0.8);
+            --bg-red: rgba(254,242,242,0.8);
+            --bg-amber: rgba(255,251,235,0.8);
+            --bg-blue: rgba(239,246,255,0.8);
+            --bg-green-solid: #f0fdf4;
+            --bg-red-solid: #fef2f2;
+            --bg-amber-solid: #fffbeb;
+
+            --text-primary: #111827;
+            --text-heading: #1f2937;
+            --text-body: #374151;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --text-faint: #d1d5db;
+
+            --border-card: rgba(255,255,255,0.6);
+            --border-input: rgba(0,0,0,0.06);
+            --border-subtle: rgba(0,0,0,0.04);
+
+            --green-text: #16a34a;
+            --red-text: #dc2626;
+            --amber-text: #d97706;
+            --green-border: #bbf7d0;
+            --red-border: #fecaca;
+            --amber-border: #fde68a;
+
+            --sidebar-wave-fill: rgba(255,255,255,0.85);
+            --blob-opacity: 0.3;
+            --candy-gradient: linear-gradient(135deg, #fefce8 0%, #f0fdf4 25%, #eff6ff 50%, #fdf4ff 75%, #fff7ed 100%);
+        }
+
+        /* ====== DARK MODE VARIABLES ====== */
+        [data-dark="true"] {
+            --bg-card: rgba(30,41,59,0.7);
+            --bg-card-hover: rgba(51,65,85,0.8);
+            --bg-card-alt: rgba(30,41,59,0.75);
+            --bg-sidebar: rgba(15,23,42,0.95);
+            --bg-input: rgba(30,41,59,0.8);
+            --bg-input-focus: rgba(51,65,85,0.95);
+            --bg-inner: rgba(51,65,85,0.3);
+            --bg-overlay: rgba(0,0,0,0.6);
+            --bg-green: rgba(6,78,59,0.3);
+            --bg-red: rgba(127,29,29,0.3);
+            --bg-amber: rgba(120,53,15,0.3);
+            --bg-blue: rgba(30,58,138,0.3);
+            --bg-green-solid: rgba(6,78,59,0.4);
+            --bg-red-solid: rgba(127,29,29,0.4);
+            --bg-amber-solid: rgba(120,53,15,0.4);
+
+            --text-primary: #f1f5f9;
+            --text-heading: #e2e8f0;
+            --text-body: #cbd5e1;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-faint: #475569;
+
+            --border-card: rgba(51,65,85,0.5);
+            --border-input: rgba(51,65,85,0.4);
+            --border-subtle: rgba(51,65,85,0.3);
+
+            --green-text: #4ade80;
+            --red-text: #f87171;
+            --amber-text: #fbbf24;
+            --green-border: rgba(22,163,74,0.3);
+            --red-border: rgba(220,38,38,0.3);
+            --amber-border: rgba(217,119,6,0.3);
+
+            --sidebar-wave-fill: rgba(15,23,42,0.95);
+            --blob-opacity: 0.15;
+            --candy-gradient: linear-gradient(135deg, #0f172a 0%, #1a1035 25%, #0f172a 50%, #170f2e 75%, #0f172a 100%);
+        }
+
+        /* ====== GLOBAL CANDY STYLES ====== */
+        * { font-family: 'Inter', system-ui, sans-serif; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--border-subtle); }
+        ::-webkit-scrollbar-thumb { background: var(--brand-300); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--brand-400); }
+
+        /* ====== FLUID BACKGROUND ====== */
+        .candy-bg {
+            background: var(--candy-gradient);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ====== WAVY SIDEBAR BG ====== */
+        .sidebar-wave {
+            position: relative;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .sidebar-wave::after {
+            content: '';
+            position: absolute;
+            top: 0; right: -1px; bottom: 0;
+            width: 24px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 400'%3E%3Cpath d='M0,0 C20,50 0,100 20,150 C40,200 0,250 20,300 C40,350 0,400 20,400 L0,400 Z' fill='white'/%3E%3C/svg%3E") repeat-y;
+            pointer-events: none;
+        }
+
+        /* ====== GLASS CARD ====== */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-card);
+            border-radius: 1.25rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.08), 0 0 0 1px var(--border-card);
+            background: var(--bg-card-hover);
+        }
+
+        /* ====== BOUNCY CARD (hero cards) ====== */
+        .bouncy-card {
+            background: var(--bg-card-alt);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-card);
+            border-radius: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        .bouncy-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, var(--brand-100) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        .bouncy-card:hover::before { opacity: 0.5; }
+        .bouncy-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1), 0 0 0 1px var(--brand-200);
+        }
+
+        /* ====== CANDY BUTTON ====== */
+        .candy-btn {
+            background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+            color: white;
+            border: none;
+            border-radius: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        .candy-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            pointer-events: none;
+        }
+        .candy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px var(--brand-300);
+        }
+        .candy-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* ====== NAV LINK BOUNCE ====== */
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 0.875rem;
+        }
+        .nav-link:hover {
+            transform: translateX(4px);
+        }
+        .nav-link.active-bounce {
+            animation: wiggle 0.6s ease-in-out;
+        }
+        @keyframes wiggle {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(4px); }
+            75% { transform: translateX(-2px); }
+        }
+
+        /* ====== FLOATING BLOBS ====== */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: var(--blob-opacity);
+            pointer-events: none;
+            animation: blobFloat 8s ease-in-out infinite;
+        }
+        .blob-1 {
+            width: 300px; height: 300px;
+            background: var(--brand-200);
+            top: -100px; right: -50px;
+            animation-delay: 0s;
+            clip-path: inset(0);
+        }
+        .blob-2 {
+            width: 250px; height: 250px;
+            background: #fde68a;
+            bottom: -80px; left: -60px;
+            animation-delay: -3s;
+            clip-path: inset(0);
+        }
+        .blob-3 {
+            width: 200px; height: 200px;
+            background: #c4b5fd;
+            top: 40%; right: 10%;
+            animation-delay: -5s;
+        }
+        @keyframes blobFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(10px, -15px) scale(1.02); }
+            50% { transform: translate(-5px, 10px) scale(0.98); }
+            75% { transform: translate(8px, 5px) scale(1.01); }
+        }
+
+        /* ====== ENTRANCE ANIMATIONS ====== */
+        .fade-up {
+            animation: fadeUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .fade-up-delay-1 { animation-delay: 0.05s; }
+        .fade-up-delay-2 { animation-delay: 0.1s; }
+        .fade-up-delay-3 { animation-delay: 0.15s; }
+        .fade-up-delay-4 { animation-delay: 0.2s; }
+        .fade-up-delay-5 { animation-delay: 0.25s; }
+
+        /* ====== SPARKLE ICON ====== */
+        .icon-bounce:hover svg {
+            animation: iconPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes iconPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(1); }
+        }
+
+        /* ====== PULSE GLOW (safe to spend) ====== */
+        .pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+        /* Combined: fade-up entrance + pulse-glow after entrance completes */
+        .fade-up.pulse-glow {
+            animation: fadeUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+                       pulseGlow 3s ease-in-out 0.5s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 var(--brand-200); }
+            50% { box-shadow: 0 0 20px 5px var(--brand-100); }
+        }
+
+        /* ====== CANDY BADGE ====== */
+        .candy-badge {
+            background: linear-gradient(135deg, var(--brand-50), var(--brand-100));
+            border: 1px solid var(--brand-200);
+            border-radius: 99px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--brand-700);
+        }
+
+        /* ====== WAVY DIVIDER ====== */
+        .wavy-divider {
+            height: 4px;
+            background: linear-gradient(90deg, var(--brand-300), #fbbf24, #f472b6, var(--brand-400));
+            background-size: 200% 100%;
+            border-radius: 99px;
+            animation: wavySlide 3s linear infinite;
+        }
+        @keyframes wavySlide {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* ====== CANDY INPUT ====== */
+        .candy-input {
+            border: 2px solid var(--border-input);
+            border-radius: 0.875rem;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .candy-input:focus {
+            border-color: var(--brand-400);
+            box-shadow: 0 0 0 4px var(--brand-100);
+            background: var(--bg-input-focus);
+            transform: scale(1.01);
+        }
+
+        /* ====== MOBILE NAV ====== */
+        .mobile-nav {
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* ====== DARK MODE OVERRIDES FOR TAILWIND UTILITY CLASSES ====== */
+        [data-dark="true"] body { color: var(--text-primary); }
+
+        /* Text colors */
+        [data-dark="true"] .text-gray-900 { color: var(--text-primary) !important; }
+        [data-dark="true"] .text-gray-800 { color: var(--text-heading) !important; }
+        [data-dark="true"] .text-gray-700 { color: var(--text-body) !important; }
+        [data-dark="true"] .text-gray-600 { color: var(--text-secondary) !important; }
+        [data-dark="true"] .text-gray-500 { color: var(--text-muted) !important; }
+        [data-dark="true"] .text-gray-400 { color: var(--text-faint) !important; }
+        [data-dark="true"] .text-gray-300 { color: #64748b !important; }
+
+        /* Background overrides */
+        [data-dark="true"] .bg-white\/50 { background: rgba(30,41,59,0.5) !important; }
+        [data-dark="true"] .bg-white\/80 { background: rgba(30,41,59,0.8) !important; }
+        [data-dark="true"] .bg-gray-100 { background: #1e293b !important; }
+        [data-dark="true"] .bg-gray-100\/80 { background: rgba(30,41,59,0.8) !important; }
+
+        /* Green backgrounds */
+        [data-dark="true"] .bg-green-50 { background: var(--bg-green-solid) !important; }
+        [data-dark="true"] .bg-green-50\/80 { background: rgba(6,78,59,0.4) !important; }
+        [data-dark="true"] .bg-green-50\/20 { background: rgba(6,78,59,0.15) !important; }
+        [data-dark="true"] .bg-green-100 { background: rgba(6,78,59,0.4) !important; }
+        [data-dark="true"] .text-green-500 { color: #4ade80 !important; }
+        [data-dark="true"] .text-green-600 { color: #4ade80 !important; }
+        [data-dark="true"] .text-green-700 { color: #86efac !important; }
+        [data-dark="true"] .text-green-800 { color: #86efac !important; }
+        [data-dark="true"] .border-green-200 { border-color: rgba(22,163,74,0.3) !important; }
+        [data-dark="true"] .border-green-400 { border-color: rgba(22,163,74,0.5) !important; }
+        [data-dark="true"] .bg-green-100\/80 { background: rgba(6,78,59,0.4) !important; }
+
+        /* Red backgrounds */
+        [data-dark="true"] .bg-red-50 { background: var(--bg-red-solid) !important; }
+        [data-dark="true"] .bg-red-50\/80 { background: rgba(127,29,29,0.4) !important; }
+        [data-dark="true"] .bg-red-50\/20 { background: rgba(127,29,29,0.15) !important; }
+        [data-dark="true"] .text-red-400 { color: #f87171 !important; }
+        [data-dark="true"] .text-red-500 { color: #f87171 !important; }
+        [data-dark="true"] .text-red-600 { color: #fca5a5 !important; }
+        [data-dark="true"] .text-red-700 { color: #fca5a5 !important; }
+        [data-dark="true"] .text-red-800 { color: #fca5a5 !important; }
+        [data-dark="true"] .border-red-200 { border-color: rgba(220,38,38,0.3) !important; }
+        [data-dark="true"] .border-red-400 { border-color: rgba(220,38,38,0.5) !important; }
+        [data-dark="true"] .bg-red-100 { background: rgba(127,29,29,0.4) !important; }
+        [data-dark="true"] .hover\:bg-red-50:hover { background: rgba(127,29,29,0.3) !important; }
+        [data-dark="true"] .hover\:bg-red-50\/50:hover { background: rgba(127,29,29,0.2) !important; }
+
+        /* Amber backgrounds */
+        [data-dark="true"] .bg-amber-50 { background: var(--bg-amber-solid) !important; }
+        [data-dark="true"] .bg-amber-50\/80 { background: rgba(120,53,15,0.4) !important; }
+        [data-dark="true"] .text-amber-500 { color: #fbbf24 !important; }
+        [data-dark="true"] .text-amber-600 { color: #fbbf24 !important; }
+        [data-dark="true"] .text-amber-700 { color: #fcd34d !important; }
+        [data-dark="true"] .text-amber-800 { color: #fcd34d !important; }
+        [data-dark="true"] .border-amber-200 { border-color: rgba(217,119,6,0.3) !important; }
+        [data-dark="true"] .bg-amber-50\/80 { background: rgba(120,53,15,0.4) !important; }
+
+        /* Blue backgrounds */
+        [data-dark="true"] .bg-blue-50 { background: var(--bg-blue) !important; }
+        [data-dark="true"] .bg-blue-50\/80 { background: rgba(30,58,138,0.4) !important; }
+        [data-dark="true"] .text-blue-700 { color: #93c5fd !important; }
+        [data-dark="true"] .text-blue-800 { color: #93c5fd !important; }
+        [data-dark="true"] .border-blue-200 { border-color: rgba(59,130,246,0.3) !important; }
+
+        /* Table specific */
+        [data-dark="true"] .divide-gray-100\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(51,65,85,0.3) !important; }
+        [data-dark="true"] .border-gray-100\/50 { border-color: rgba(51,65,85,0.3) !important; }
+        [data-dark="true"] .border-gray-200\/50 { border-color: rgba(51,65,85,0.3) !important; }
+        [data-dark="true"] .border-gray-200\/80 { border-color: rgba(51,65,85,0.4) !important; }
+        [data-dark="true"] .bg-white\/50 { background: rgba(30,41,59,0.5) !important; }
+
+        /* Sidebar user profile card */
+        [data-dark="true"] .sidebar-profile { background: rgba(30,41,59,0.5) !important; }
+
+        /* Inner white cards (taxes explainer, etc.) */
+        [data-dark="true"] .bg-white\/50 { background: rgba(30,41,59,0.5) !important; }
+
+        /* Sticky table header */
+        [data-dark="true"] .sticky { background: rgba(15,23,42,0.9) !important; }
+
+        /* Placeholder text */
+        [data-dark="true"] .placeholder-gray-400::placeholder { color: #64748b !important; }
+
+        /* Select elements */
+        [data-dark="true"] select { background-color: var(--bg-input); color: var(--text-primary); }
+        [data-dark="true"] select option { background: #1e293b; color: #f1f5f9; }
+
+        /* Table row hover */
+        [data-dark="true"] .hover\:bg-white\/50:hover { background: rgba(30,41,59,0.5) !important; }
+
+        /* Checkbox */
+        [data-dark="true"] input[type="checkbox"] { background-color: var(--bg-input); border-color: var(--border-input); }
+
+        /* Fix candy-badge in dark mode */
+        [data-dark="true"] .candy-badge {
+            background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.1));
+            border-color: rgba(139,92,246,0.3);
+            color: var(--brand-300);
+        }
+
+        /* Fix bg-brand-50 in dark */
+        [data-dark="true"] .bg-brand-50 { background: rgba(139,92,246,0.15) !important; }
+        [data-dark="true"] .bg-brand-100 { background: rgba(139,92,246,0.2) !important; }
+        [data-dark="true"] .border-brand-200 { border-color: rgba(139,92,246,0.3) !important; }
+        [data-dark="true"] .border-brand-400 { border-color: rgba(139,92,246,0.5) !important; }
+        [data-dark="true"] .text-brand-500 { color: var(--brand-400) !important; }
+        [data-dark="true"] .text-brand-600 { color: var(--brand-400) !important; }
+        [data-dark="true"] .text-brand-700 { color: var(--brand-300) !important; }
+
+        /* Dark mode sidebar wave SVG */
+        [data-dark="true"] .sidebar-wave::after {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 400'%3E%3Cpath d='M0,0 C12,50 0,100 12,150 C24,200 0,250 12,300 C24,350 0,400 12,400 L0,400 Z' fill='%230f172a'/%3E%3C/svg%3E") repeat-y;
+        }
+
+        /* ====== SMOOTH THEME TRANSITIONS ====== */
+        body, .glass-card, .bouncy-card, .candy-btn, .candy-input, .nav-link,
+        .bg-brand-50, .bg-brand-100, .text-brand-600, .text-brand-700,
+        .border-brand-200, .border-brand-300, .bg-brand-600, .bg-brand-700,
+        .sidebar-wave, .mobile-nav {
+            transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease,
+                        box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        /* ====== DARK MODE TOGGLE ====== */
+        .dark-toggle {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            border-radius: 99px;
+            background: #e2e8f0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .dark-toggle.active {
+            background: var(--brand-500);
+        }
+        .dark-toggle .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: white;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .dark-toggle.active .toggle-knob {
+            transform: translateX(24px);
+        }
+
+        /* ====== EXPORT DROPDOWN ====== */
+        .export-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            width: 13rem;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.95);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .export-dropdown.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
-<body class="h-full bg-gray-50 text-gray-900">
-    <div class="flex h-full">
+<body class="h-full candy-bg text-gray-900">
+    <div class="flex h-full relative overflow-hidden">
+        <!-- Decorative Blobs -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+
         <!-- Sidebar -->
-        <aside class="hidden md:flex w-64 flex-col bg-white border-r border-gray-200 shadow-sm">
-            <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
-                <div class="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center">
+        <aside class="hidden md:flex w-64 flex-col sidebar-wave z-10">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 px-6 py-5">
+                <div class="w-10 h-10 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-200 icon-bounce">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-gray-900">FreelanceCash</h1>
-                    <p class="text-xs text-gray-500">Finance for Freelancers</p>
+                    <h1 class="text-lg font-extrabold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent">GigLedger</h1>
+                    <p class="text-[10px] text-gray-400 font-medium tracking-wide uppercase">Finance for Freelancers</p>
                 </div>
             </div>
-            <nav class="flex-1 px-3 py-4 space-y-1">
-                <a href="{{ url_port('dashboard.index') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {% if request.endpoint == 'dashboard.index' %}bg-brand-50 text-brand-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+
+            <div class="wavy-divider mx-6 mb-2"></div>
+
+            <!-- Nav Links -->
+            <nav class="flex-1 px-3 py-3 space-y-1">
+                <a href="{{ url_port('dashboard.index') }}" class="nav-link icon-bounce flex items-center gap-3 px-4 py-3 text-sm font-semibold {% if request.endpoint == 'dashboard.index' %}bg-brand-50 text-brand-700 shadow-sm{% else %}text-gray-500 hover:bg-white/60 hover:text-gray-800{% endif %}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                     Dashboard
                 </a>
-                <a href="{{ url_port('transactions.list_transactions') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {% if request.endpoint and 'transactions' in request.endpoint %}bg-brand-50 text-brand-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <a href="{{ url_port('transactions.list_transactions') }}" class="nav-link icon-bounce flex items-center gap-3 px-4 py-3 text-sm font-semibold {% if request.endpoint and 'transactions' in request.endpoint %}bg-brand-50 text-brand-700 shadow-sm{% else %}text-gray-500 hover:bg-white/60 hover:text-gray-800{% endif %}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                     Transactions
                 </a>
-                <a href="{{ url_port('taxes.index') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {% if request.endpoint and 'taxes' in request.endpoint %}bg-brand-50 text-brand-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <a href="{{ url_port('taxes.index') }}" class="nav-link icon-bounce flex items-center gap-3 px-4 py-3 text-sm font-semibold {% if request.endpoint and 'taxes' in request.endpoint %}bg-brand-50 text-brand-700 shadow-sm{% else %}text-gray-500 hover:bg-white/60 hover:text-gray-800{% endif %}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
                     Taxes
                 </a>
-                <a href="{{ url_port('settings.index') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {% if request.endpoint and 'settings' in request.endpoint %}bg-brand-50 text-brand-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <a href="{{ url_port('settings.index') }}" class="nav-link icon-bounce flex items-center gap-3 px-4 py-3 text-sm font-semibold {% if request.endpoint and 'settings' in request.endpoint %}bg-brand-50 text-brand-700 shadow-sm{% else %}text-gray-500 hover:bg-white/60 hover:text-gray-800{% endif %}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     Settings
                 </a>
             </nav>
-            <div class="px-3 py-4 border-t border-gray-100">
-                <div class="flex items-center gap-3 px-3 py-2">
-                    <div class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-semibold">{{ current_user.email[0]|upper }}</div>
+
+            <!-- User Profile + Dark Mode Toggle -->
+            <div class="px-3 py-4 mx-3 mb-3 rounded-2xl sidebar-profile" style="background:rgba(255,255,255,0.5)">
+                <div class="flex items-center gap-3 px-2 py-1">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-300 to-brand-500 text-white flex items-center justify-center text-sm font-bold shadow-md">{{ current_user.email[0]|upper }}</div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">{{ current_user.email }}</p>
-                        <p class="text-xs text-gray-500">Tax Rate: {{ (current_user.default_tax_rate * 100)|int }}%</p>
+                        <p class="text-sm font-semibold text-gray-800 truncate">{{ current_user.email }}</p>
+                        <p class="text-[10px] text-gray-400 font-medium">{{ (current_user.default_tax_rate * 100)|int }}% tax rate</p>
                     </div>
                 </div>
-                <a href="{{ url_port('auth.logout') }}" class="flex items-center gap-2 px-3 py-2 mt-1 text-sm text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                <!-- Dark Mode Toggle -->
+                <div class="flex items-center justify-between px-2 py-2 mt-2">
+                    <span class="text-xs text-gray-400 font-medium flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                        Dark Mode
+                    </span>
+                    <form method="POST" action="{{ url_port('settings.toggle_dark_mode') }}" class="inline">
+                        <input type="hidden" name="dark_mode" value="{{ 'off' if current_user.dark_mode else 'on' }}">
+                        <button type="submit" class="dark-toggle {% if current_user.dark_mode %}active{% endif %}">
+                            <div class="toggle-knob">
+                                {% if current_user.dark_mode %}
+                                <svg class="w-3 h-3 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /></svg>
+                                {% else %}
+                                <svg class="w-3 h-3 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" /></svg>
+                                {% endif %}
+                            </div>
+                        </button>
+                    </form>
+                </div>
+                <a href="{{ url_port('auth.logout') }}" class="flex items-center gap-2 px-2 py-2 mt-1 text-xs text-gray-400 hover:text-red-500 rounded-xl hover:bg-red-50/50 transition-all font-medium">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                     Sign Out
                 </a>
@@ -79,36 +647,49 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden relative z-10">
             <!-- Mobile header -->
-            <header class="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+            <header class="md:hidden flex items-center justify-between px-4 py-3 mobile-nav border-b border-white/30">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
+                    <div class="w-9 h-9 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-200">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <span class="font-bold text-gray-900">FreelanceCash</span>
+                    <span class="font-extrabold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent">GigLedger</span>
                 </div>
-                <a href="{{ url_port('auth.logout') }}" class="p-2 text-gray-500 hover:text-red-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                </a>
+                <div class="flex items-center gap-3">
+                    <!-- Mobile dark mode toggle -->
+                    <form method="POST" action="{{ url_port('settings.toggle_dark_mode') }}" class="inline">
+                        <input type="hidden" name="dark_mode" value="{{ 'off' if current_user.dark_mode else 'on' }}">
+                        <button type="submit" class="p-2 rounded-xl transition-all {% if current_user.dark_mode %}text-indigo-400 bg-indigo-900/30{% else %}text-amber-500 bg-amber-50{% endif %}">
+                            {% if current_user.dark_mode %}
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /></svg>
+                            {% else %}
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" /></svg>
+                            {% endif %}
+                        </button>
+                    </form>
+                    <a href="{{ url_port('auth.logout') }}" class="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    </a>
+                </div>
             </header>
 
             <!-- Mobile bottom nav -->
-            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-                <div class="flex justify-around py-2">
-                    <a href="{{ url_port('dashboard.index') }}" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if request.endpoint == 'dashboard.index' %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+            <div class="md:hidden fixed bottom-0 left-0 right-0 mobile-nav border-t border-white/30 z-50">
+                <div class="flex justify-around py-2 px-2">
+                    <a href="{{ url_port('dashboard.index') }}" class="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl text-xs transition-all {% if request.endpoint == 'dashboard.index' %}bg-brand-50 text-brand-600 font-bold{% else %}text-gray-400{% endif %}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                         Home
                     </a>
-                    <a href="{{ url_port('transactions.list_transactions') }}" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if request.endpoint and 'transactions' in request.endpoint %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                    <a href="{{ url_port('transactions.list_transactions') }}" class="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl text-xs transition-all {% if request.endpoint and 'transactions' in request.endpoint %}bg-brand-50 text-brand-600 font-bold{% else %}text-gray-400{% endif %}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                        Transactions
+                        Txns
                     </a>
-                    <a href="{{ url_port('taxes.index') }}" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if request.endpoint and 'taxes' in request.endpoint %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                    <a href="{{ url_port('taxes.index') }}" class="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl text-xs transition-all {% if request.endpoint and 'taxes' in request.endpoint %}bg-brand-50 text-brand-600 font-bold{% else %}text-gray-400{% endif %}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
                         Taxes
                     </a>
-                    <a href="{{ url_port('settings.index') }}" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if request.endpoint and 'settings' in request.endpoint %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                    <a href="{{ url_port('settings.index') }}" class="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl text-xs transition-all {% if request.endpoint and 'settings' in request.endpoint %}bg-brand-50 text-brand-600 font-bold{% else %}text-gray-400{% endif %}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         Settings
                     </a>
@@ -120,7 +701,8 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="flex items-center gap-2 px-4 py-3 rounded-lg text-sm {% if category == 'success' %}bg-green-50 text-green-800 border border-green-200{% elif category == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif category == 'info' %}bg-blue-50 text-blue-800 border border-blue-200{% else %}bg-gray-50 text-gray-800 border border-gray-200{% endif %}">
+                            <div class="flex items-center gap-3 px-5 py-3 rounded-2xl text-sm font-medium fade-up {% if category == 'success' %}bg-green-50/80 backdrop-blur text-green-800 border border-green-200{% elif category == 'error' %}bg-red-50/80 backdrop-blur text-red-800 border border-red-200{% elif category == 'info' %}bg-blue-50/80 backdrop-blur text-blue-800 border border-blue-200{% else %}bg-white/80 backdrop-blur text-gray-800 border border-gray-200{% endif %}">
+                                {% if category == 'success' %}<span class="text-lg">&#10024;</span>{% elif category == 'error' %}<span class="text-lg">&#128165;</span>{% else %}<span class="text-lg">&#128172;</span>{% endif %}
                                 {{ message }}
                             </div>
                         {% endfor %}
@@ -129,11 +711,16 @@
             </div>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6 pb-20 md:pb-6">
+            <main class="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-6">
                 {% block content %}{% endblock %}
             </main>
         </div>
     </div>
     {% block scripts %}{% endblock %}
+    <script>
+        // Save theme preferences to localStorage for auth pages to read
+        localStorage.setItem('fc_theme', '{{ current_user.theme if current_user.is_authenticated else "emerald" }}');
+        localStorage.setItem('fc_dark', '{{ "true" if current_user.is_authenticated and current_user.dark_mode else "false" }}');
+    </script>
 </body>
 </html>
