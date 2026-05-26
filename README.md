@@ -13,6 +13,7 @@
 ---
 
 > **Stop juggling multiple apps.** GigLedger is a self-hosted finance dashboard built for freelancers, contractors, and gig workers who want a clear picture of income, expenses, invoices, projects, and quarterly tax obligations — all in one place, without the complexity of full accounting software.
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-24-46" src="https://github.com/user-attachments/assets/61f00f01-0cfd-4b73-99b8-eb6bf62f83b9" />
 
 ---
 
@@ -383,6 +384,17 @@ Mark as Paid ──────────────────────�
 When an invoice is **un-paid** (reverted to Sent), **both** auto-posted transactions are automatically removed. When an invoice is **deleted**, all linked transactions are also removed. This keeps your books clean and consistent.
 
 ---
+## Screenshots
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-24-46" src="https://github.com/user-attachments/assets/f12c1028-0705-46d7-beaa-62e01933bc0e" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-35-54" src="https://github.com/user-attachments/assets/98bdf2e9-596e-46bc-95dc-964d8d89a73c" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-27-03" src="https://github.com/user-attachments/assets/dcc9ae45-61c1-4c03-bbda-a227190c9587" />
+
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-26-47" src="https://github.com/user-attachments/assets/ee54b4a6-6dc6-4661-ab24-21230808b209" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-26-42" src="https://github.com/user-attachments/assets/fd082434-5dc7-4610-b270-3a7cb02d7fad" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-26-34" src="https://github.com/user-attachments/assets/071592d7-c3eb-4fde-a08a-73a5928261c9" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-26-07" src="https://github.com/user-attachments/assets/d69fcc06-71ee-4c9b-a80b-ebad11d0d09f" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-25-58" src="https://github.com/user-attachments/assets/c078d230-d2c5-4a60-9d39-c97a09f88ca1" />
+<img width="3441" height="1356" alt="Screenshot from 2026-05-26 10-25-52" src="https://github.com/user-attachments/assets/dcfdb946-c8da-4119-b49c-cb9fd532c447" />
 
 ## 🎯 Roadmap
 
@@ -418,6 +430,9 @@ When an invoice is **un-paid** (reverted to Sent), **both** auto-posted transact
 5. Open a Pull Request
 
 ---
+
+## Contact
+FOr any help support contact me on Telegram @cyberoxide, Instagram @coding_memz, WhatsApp +44 7598 820751
 
 ## 📄 License
 
