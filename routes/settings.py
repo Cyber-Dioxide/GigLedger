@@ -149,3 +149,16 @@ def reset_categories():
     db.session.commit()
     flash('Categories reset to defaults.', 'success')
     return redirect(url_for('settings.index'))
+
+
+@settings_bp.route('/settings/business', methods=['POST'])
+@login_required
+def update_business():
+    current_user.business_name = request.form.get('business_name', '').strip()
+    current_user.business_address = request.form.get('business_address', '').strip()
+    current_user.business_phone = request.form.get('business_phone', '').strip()
+    current_user.invoice_note = request.form.get('invoice_note', '').strip()
+    current_user.invoice_prefix = request.form.get('invoice_prefix', 'INV').strip()
+    db.session.commit()
+    flash('Business profile updated!', 'success')
+    return redirect(url_for('settings.index'))

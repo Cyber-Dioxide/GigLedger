@@ -83,6 +83,37 @@ def add():
     return redirect(request.referrer or url_for('dashboard.index'))
 
 
+@transactions_bp.route('/transactions/edit/<int:id>', methods=['POST'])
+@login_required
+def edit(id):
+    tx = Transaction.query.filter_by(id=id, user_id=current_user.id).first()
+    if not tx:
+        flash('Transaction not found.', 'error')
+        return redirect(url_for('transactions.list_transactions'))
+
+    try: amount = float(request.form.get('amount', '0'))
+    except ValueError:
+        flash('Invalid amount.', 'error')
+        return redirect(url_for('transactions.list_transactions'))
+
+    tx_type = request.form.get('type', 'income')
+    if tx_type == 'expense' and amount > 0: amount = -amount
+    elif tx_type == 'income' and amount < 0: amount = abs(amount)
+
+    date_str = request.form.get('date', '')
+    try: tx.date = datetime.strptime(date_str, '%Y-%m-%d')
+    except: pass
+
+    tx.amount = amount
+    tx.category = request.form.get('category', 'Uncategorized')
+    tx.description = request.form.get('description', '')
+    tx.is_tax_deductible = request.form.get('is_tax_deductible') == 'on'
+
+    db.session.commit()
+    flash('Transaction updated!', 'success')
+    return redirect(url_for('transactions.list_transactions'))
+
+
 @transactions_bp.route('/transactions/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):

@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
+from ..models import Goal, Project, Invoice, Client
 from ..finance import (calculate_monthly_summary, calculate_safe_to_spend,
                        calculate_runway, get_6_month_chart_data, get_quarter,
                        get_recent_transactions, get_category_breakdown)
@@ -46,6 +47,27 @@ def index():
     deductible_this_month = sum(abs(r[0]) for r in results if r[0] < 0 and r[1])
     tax_saving_this_month = deductible_this_month * tax_rate
 
+    # New: Goals data
+    goals = Goal.query.filter_by(user_id=uid, is_completed=False).order_by(Goal.deadline.asc().nulls_last()).limit(3).all()
+    total_goals_saved = sum(g.current_amount for g in Goal.query.filter_by(user_id=uid).all())
+
+    # New: Active projects
+    active_projects = Project.query.filter_by(user_id=uid, status='active').order_by(Project.deadline.asc().nulls_last()).limit(3).all()
+    active_project_count = Project.query.filter_by(user_id=uid, status='active').count()
+
+    # New: Invoice data
+    unpaid_invoices = Invoice.query.filter_by(user_id=uid).filter(Invoice.status.in_(['sent', 'overdue'])).order_by(Invoice.due_date.asc()).all()
+    total_outstanding = sum(inv.total for inv in unpaid_invoices)
+    overdue_count = Invoice.query.filter_by(user_id=uid, status='overdue').count()
+
+    # New: Client count
+    client_count = Client.query.filter_by(user_id=uid, is_active=True).count()
+
+    # New: Recurring monthly commitment
+    from ..models import RecurringTransaction
+    recurring_active = RecurringTransaction.query.filter_by(user_id=uid, is_active=True, frequency='monthly').all()
+    monthly_commitment = sum(abs(r.amount) for r in recurring_active if r.amount < 0)
+
     return render_template('dashboard/index.html',
         month_income=month_income, month_expenses=month_expenses,
         net_this_month=net_this_month,
@@ -60,4 +82,9 @@ def index():
         income_trend=income_trend, expense_trend=expense_trend,
         deductible_this_month=deductible_this_month,
         tax_saving_this_month=tax_saving_this_month,
-        user_categories=current_user.get_all_categories())
+        user_categories=current_user.get_all_categories(),
+        goals=goals, total_goals_saved=total_goals_saved,
+        active_projects=active_projects, active_project_count=active_project_count,
+        unpaid_invoices=unpaid_invoices, total_outstanding=total_outstanding,
+        overdue_count=overdue_count, client_count=client_count,
+        monthly_commitment=monthly_commitment, now=now)

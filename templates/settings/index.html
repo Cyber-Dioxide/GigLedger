@@ -39,6 +39,37 @@
         </div>
     </div>
 
+    <!-- Business Profile (for invoices) -->
+    <div class="glass-card p-6 fade-up fade-up-delay-1">
+        <h2 class="text-lg font-extrabold text-gray-900 mb-2">Business Profile</h2>
+        <p class="text-sm text-gray-400 mb-6 font-medium">This info appears on your invoices and PDF exports.</p>
+        <form method="POST" action="{{ url_port('settings.update_business') }}" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Business Name</label>
+                <input type="text" name="business_name" value="{{ user.business_name or '' }}" class="candy-input block w-full px-4 py-2.5 text-gray-900 focus:outline-none" placeholder="Your Business Name">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Business Address</label>
+                <textarea name="business_address" rows="2" class="candy-input block w-full px-4 py-2.5 text-gray-900 focus:outline-none" placeholder="123 Main St, City, State">{{ user.business_address or '' }}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Phone</label>
+                    <input type="text" name="business_phone" value="{{ user.business_phone or '' }}" class="candy-input block w-full px-4 py-2.5 text-gray-900 focus:outline-none" placeholder="+1 (555) 123-4567">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Invoice Prefix</label>
+                    <input type="text" name="invoice_prefix" value="{{ user.invoice_prefix or 'INV' }}" maxlength="10" class="candy-input block w-full px-4 py-2.5 text-gray-900 focus:outline-none" placeholder="INV">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Default Invoice Note</label>
+                <textarea name="invoice_note" rows="2" class="candy-input block w-full px-4 py-2.5 text-gray-900 focus:outline-none" placeholder="Thank you for your business!">{{ user.invoice_note or '' }}</textarea>
+            </div>
+            <button type="submit" class="candy-btn px-6 py-2.5 text-sm">Save Business Info</button>
+        </form>
+    </div>
+
     <!-- Dark Mode Toggle -->
     <div class="glass-card p-6 fade-up fade-up-delay-1">
         <div class="flex items-center justify-between">

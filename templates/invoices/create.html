@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Create Invoice - GigLedger{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-up relative z-50">
+        <div>
+            <h1 class="text-2xl font-extrabold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Create Invoice</h1>
+            <p class="text-sm text-gray-400 mt-1 font-medium">Add details and line items for your invoice</p>
+        </div>
+        <a href="{{ url_port('invoices.list_invoices') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back to Invoices
+        </a>
+    </div>
+
+    <form method="POST" action="{{ url_port('invoices.create_invoice') }}" id="invoiceForm" class="space-y-6">
+        <!-- Invoice Details -->
+        <div class="glass-card p-6 fade-up fade-up-delay-1">
+            <h2 class="text-lg font-extrabold text-gray-800 mb-4">Invoice Details</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Client</label>
+                    <select name="client_id" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                        <option value="">Select a client...</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}">{{ client.name }}{% if client.company %} ({{ client.company }}){% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Issue Date</label>
+                    <input type="date" name="issue_date" value="{{ today }}" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1.5">Due Date</label>
+                    <input type="date" name="due_date" value="{{ default_due }}" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Items -->
+        <div class="glass-card p-6 fade-up fade-up-delay-2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-extrabold text-gray-800">Line Items</h2>
+                <button type="button" onclick="addLineItem()" class="inline-flex items-center gap-1.5 px-3 py-1.5 glass-card font-semibold rounded-xl transition-all text-sm hover:scale-105 text-brand-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    Add Item
+                </button>
+            </div>
+
+            <!-- Line Items Header -->
+            <div class="hidden sm:grid grid-cols-12 gap-3 mb-2 px-1">
+                <div class="col-span-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</div>
+                <div class="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Quantity</div>
+                <div class="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Rate ({{ currency | currency_symbol }})</div>
+                <div class="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Amount</div>
+                <div class="col-span-1"></div>
+            </div>
+
+            <div id="lineItems" class="space-y-3">
+                <!-- Initial line item -->
+                <div class="line-item grid grid-cols-1 sm:grid-cols-12 gap-3 items-center p-3 rounded-xl bg-white/30 border border-gray-100/50">
+                    <div class="sm:col-span-5">
+                        <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Description</label>
+                        <input type="text" name="description[]" placeholder="Service description..." required class="candy-input block w-full px-3 py-2 text-sm text-gray-900 focus:outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Quantity</label>
+                        <input type="number" name="quantity[]" value="1" step="0.5" min="0.5" required class="candy-input block w-full px-3 py-2 text-sm text-gray-900 text-center focus:outline-none" oninput="recalculate()">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Rate</label>
+                        <input type="number" name="rate[]" value="0" step="0.01" min="0" required class="candy-input block w-full px-3 py-2 text-sm text-gray-900 text-center focus:outline-none" oninput="recalculate()">
+                    </div>
+                    <div class="sm:col-span-2 text-right">
+                        <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Amount</label>
+                        <span class="line-amount text-sm font-extrabold text-gray-800">{{ currency | currency_symbol }}0.00</span>
+                    </div>
+                    <div class="sm:col-span-1 text-center">
+                        <button type="button" onclick="removeLineItem(this)" class="text-gray-300 hover:text-red-500 transition-all p-1 hover:scale-110" title="Remove item">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Totals -->
+            <div class="mt-6 pt-4 border-t border-gray-100/50">
+                <div class="flex justify-end">
+                    <div class="w-full sm:w-72 space-y-2">
+                        <div class="flex justify-between items-center px-2">
+                            <span class="text-sm text-gray-500 font-medium">Subtotal</span>
+                            <span id="subtotal" class="text-sm font-bold text-gray-800">{{ currency | currency_symbol }}0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center px-2">
+                            <span class="text-sm text-gray-500 font-medium">Tax ({{ (tax_rate * 100) | int }}%)</span>
+                            <span id="taxAmount" class="text-sm font-bold text-amber-600">{{ currency | currency_symbol }}0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center px-2 py-2 border-t-2 border-gray-800 mt-2">
+                            <span class="text-base font-extrabold text-gray-800">Total</span>
+                            <span id="total" class="text-base font-extrabold text-gray-800">{{ currency | currency_symbol }}0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="glass-card p-6 fade-up fade-up-delay-3">
+            <h2 class="text-lg font-extrabold text-gray-800 mb-4">Notes</h2>
+            <textarea name="notes" rows="3" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none text-sm" placeholder="Payment terms, thank you message, or other notes..."></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 fade-up fade-up-delay-4">
+            <button type="submit" name="action" value="draft" class="flex-1 py-3 px-6 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all inline-flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                Save as Draft
+            </button>
+            <button type="submit" name="action" value="send" class="candy-btn flex-1 py-3 px-6 text-sm inline-flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                Save & Send
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var taxRate = {{ tax_rate }};
+    var currencySymbol = '{{ currency | currency_symbol }}';
+    var lineItemIndex = 1;
+
+    function addLineItem() {
+        var container = document.getElementById('lineItems');
+        var div = document.createElement('div');
+        div.className = 'line-item grid grid-cols-1 sm:grid-cols-12 gap-3 items-center p-3 rounded-xl bg-white/30 border border-gray-100/50';
+        div.innerHTML = `
+            <div class="sm:col-span-5">
+                <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Description</label>
+                <input type="text" name="description[]" placeholder="Service description..." required class="candy-input block w-full px-3 py-2 text-sm text-gray-900 focus:outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Quantity</label>
+                <input type="number" name="quantity[]" value="1" step="0.5" min="0.5" required class="candy-input block w-full px-3 py-2 text-sm text-gray-900 text-center focus:outline-none" oninput="recalculate()">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Rate</label>
+                <input type="number" name="rate[]" value="0" step="0.01" min="0" required class="candy-input block w-full px-3 py-2 text-sm text-gray-900 text-center focus:outline-none" oninput="recalculate()">
+            </div>
+            <div class="sm:col-span-2 text-right">
+                <label class="sm:hidden block text-xs font-semibold text-gray-400 mb-1">Amount</label>
+                <span class="line-amount text-sm font-extrabold text-gray-800">` + currencySymbol + `0.00</span>
+            </div>
+            <div class="sm:col-span-1 text-center">
+                <button type="button" onclick="removeLineItem(this)" class="text-gray-300 hover:text-red-500 transition-all p-1 hover:scale-110" title="Remove item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
+        recalculate();
+    }
+
+    function removeLineItem(btn) {
+        var items = document.querySelectorAll('.line-item');
+        if (items.length <= 1) {
+            alert('You need at least one line item.');
+            return;
+        }
+        btn.closest('.line-item').remove();
+        recalculate();
+    }
+
+    function recalculate() {
+        var items = document.querySelectorAll('.line-item');
+        var subtotal = 0;
+        items.forEach(function(item) {
+            var qtyInput = item.querySelector('input[name="quantity[]"]');
+            var rateInput = item.querySelector('input[name="rate[]"]');
+            var amountSpan = item.querySelector('.line-amount');
+            var qty = parseFloat(qtyInput.value) || 0;
+            var rate = parseFloat(rateInput.value) || 0;
+            var amount = qty * rate;
+            subtotal += amount;
+            amountSpan.textContent = currencySymbol + amount.toFixed(2);
+        });
+        var tax = subtotal * taxRate;
+        var total = subtotal + tax;
+        document.getElementById('subtotal').textContent = currencySymbol + subtotal.toFixed(2);
+        document.getElementById('taxAmount').textContent = currencySymbol + tax.toFixed(2);
+        document.getElementById('total').textContent = currencySymbol + total.toFixed(2);
+    }
+
+    // Initial calculation
+    recalculate();
+</script>
+{% endblock %}

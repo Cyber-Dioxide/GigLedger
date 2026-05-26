@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block title %}Recurring Transactions - GigLedger{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-up relative z-50">
+        <div>
+            <h1 class="text-2xl font-extrabold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Recurring Transactions &#x1F504;</h1>
+            <p class="text-sm text-gray-400 mt-1 font-medium">{{ recurring|length }} recurring item{{ 's' if recurring|length != 1 else '' }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <form method="POST" action="{{ url_port('recurring.generate') }}">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 glass-card font-semibold rounded-xl transition-all text-sm hover:scale-105">
+                    <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Generate Pending
+                </button>
+            </form>
+            <button onclick="document.getElementById('addRecurringModal').classList.remove('hidden')" class="candy-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                Add
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 fade-up fade-up-delay-1">
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-red-400 font-semibold">Monthly Commitments</p>
+            <p class="text-lg font-extrabold text-red-500">{{ currency | currency_symbol }}{{ monthly_commitments | money }}</p>
+        </div>
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-brand-500 font-semibold">Active Count</p>
+            <p class="text-lg font-extrabold text-brand-600">{{ active_count }}</p>
+        </div>
+    </div>
+
+    <!-- Recurring Transactions List -->
+    <div class="glass-card overflow-hidden fade-up fade-up-delay-2">
+        {% if recurring %}
+        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+            <table class="w-full">
+                <thead class="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-gray-100/50 z-10">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
+                        <th class="px-5 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
+                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
+                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Frequency</th>
+                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Next Date</th>
+                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Last Generated</th>
+                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Active</th>
+                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100/50">
+                    {% for rt in recurring %}
+                    <tr class="hover:bg-white/50 transition-all {% if not rt.is_active %}opacity-50{% endif %}">
+                        <td class="px-5 py-3.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-800 font-semibold">{{ rt.description }}</span>
+                                {% if rt.is_tax_deductible and rt.amount < 0 %}
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                    Ded.
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-5 py-3.5 text-sm font-extrabold text-right whitespace-nowrap {% if rt.amount > 0 %}text-green-500{% else %}text-red-500{% endif %}">
+                            {% if rt.amount > 0 %}+{% endif %}{{ currency | currency_symbol }}{{ rt.amount|abs | money }}
+                        </td>
+                        <td class="px-5 py-3.5">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {% if rt.amount > 0 %}bg-green-50 text-green-600{% else %}bg-gray-100/80 text-gray-600{% endif %}">
+                                {{ rt.category or 'Other' }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="candy-badge">
+                                {% if rt.frequency == 'weekly' %}Weekly
+                                {% elif rt.frequency == 'monthly' %}Monthly
+                                {% elif rt.frequency == 'quarterly' %}Quarterly
+                                {% elif rt.frequency == 'yearly' %}Yearly
+                                {% else %}{{ rt.frequency | capitalize }}{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5 text-sm text-gray-500 whitespace-nowrap font-medium">
+                            {% if rt.next_date %}
+                                {% set days_until = (rt.next_date - now).days %}
+                                {% if rt.is_active and days_until <= 0 %}
+                                <span class="text-red-500 font-bold">Due now</span>
+                                {% elif rt.is_active and days_until <= 3 %}
+                                <span class="text-amber-600 font-semibold">{{ rt.next_date.strftime('%b %d') }} ({{ days_until }}d)</span>
+                                {% else %}
+                                {{ rt.next_date.strftime('%b %d, %Y') }}
+                                {% endif %}
+                            {% else %}
+                            <span class="text-gray-300">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3.5 text-sm text-gray-400 whitespace-nowrap">
+                            {{ rt.last_generated.strftime('%b %d, %Y') if rt.last_generated else '-' }}
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            <form method="POST" action="{{ url_port('recurring.toggle', id=rt.id) }}" class="inline">
+                                <button type="submit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {% if rt.is_active %}bg-brand-500{% else %}bg-gray-200{% endif %}" title="{% if rt.is_active %}Pause{% else %}Activate{% endif %}">
+                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm {% if rt.is_active %}translate-x-6{% else %}translate-x-1{% endif %}"></span>
+                                </button>
+                            </form>
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="openEditRecurringModal({{ rt.id }}, '{{ rt.description | e }}', {{ rt.amount|abs }}, '{{ "income" if rt.amount > 0 else "expense" }}', '{{ rt.category | e }}', '{{ rt.frequency }}', {{ rt.day_of_month }}, {{ 'true' if rt.is_tax_deductible else 'false' }})" class="text-gray-300 hover:text-brand-500 transition-all p-1 hover:scale-110" title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                </button>
+                                <form method="POST" action="{{ url_port('recurring.delete', id=rt.id) }}" onsubmit="return confirm('Delete this recurring transaction?')" class="inline">
+                                    <button type="submit" class="text-gray-300 hover:text-red-500 transition-all p-1 hover:scale-110" title="Delete">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+            <div class="mx-auto w-16 h-16 glass-card rounded-3xl flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            </div>
+            <h3 class="text-gray-800 font-bold mb-1">No recurring transactions</h3>
+            <p class="text-sm text-gray-400 mb-4">Set up recurring income or expenses for automatic tracking.</p>
+            <button onclick="document.getElementById('addRecurringModal').classList.remove('hidden')" class="candy-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                Add Recurring
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Recurring Modal -->
+<div id="addRecurringModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="document.getElementById('addRecurringModal').classList.add('hidden')"></div>
+    <div class="relative glass-card rounded-3xl p-7 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" style="background:rgba(255,255,255,0.9)">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-extrabold text-gray-900">Add Recurring &#x1F504;</h2>
+            <button onclick="document.getElementById('addRecurringModal').classList.add('hidden')" class="text-gray-300 hover:text-gray-600 transition-colors p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_port('recurring.add') }}" id="addRecurringForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Type</label>
+                <div class="flex gap-2">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="type" value="income" class="peer sr-only" onchange="updateAddCategories()">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-green-400 peer-checked:bg-green-50/80 peer-checked:text-green-700 text-sm font-semibold transition-all">Income</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="type" value="expense" class="peer sr-only" checked onchange="updateAddCategories()">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-red-400 peer-checked:bg-red-50/80 peer-checked:text-red-700 text-sm font-semibold transition-all">Expense</div>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Description</label>
+                <input type="text" name="description" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none" placeholder="e.g. Monthly rent, Software subscription">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Amount ({{ currency }})</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium">{{ currency | currency_symbol }}</span>
+                    <input type="number" name="amount" step="0.01" min="0.01" required class="candy-input block w-full pl-7 pr-3 py-2.5 text-gray-900 focus:outline-none" placeholder="0.00">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Category</label>
+                <select name="category" id="add_category" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Frequency</label>
+                <select name="frequency" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Day of Month</label>
+                <input type="number" name="day_of_month" min="1" max="31" value="1" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none" placeholder="1-31">
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_tax_deductible" id="add_ded" class="h-4 w-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500">
+                    <label for="add_ded" class="text-sm font-medium text-gray-600">Tax deductible &#x1F4B0;</label>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('addRecurringModal').classList.add('hidden')" class="flex-1 py-3 px-4 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all">Cancel</button>
+                <button type="submit" class="candy-btn flex-1 py-3 px-4 text-sm">Add Recurring &#x2728;</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Recurring Modal -->
+<div id="editRecurringModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="document.getElementById('editRecurringModal').classList.add('hidden')"></div>
+    <div class="relative glass-card rounded-3xl p-7 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" style="background:rgba(255,255,255,0.9)">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-extrabold text-gray-900">Edit Recurring &#x270F;&#xFE0F;</h2>
+            <button onclick="document.getElementById('editRecurringModal').classList.add('hidden')" class="text-gray-300 hover:text-gray-600 transition-colors p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <form method="POST" id="editRecurringForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Type</label>
+                <div class="flex gap-2">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="type" value="income" id="edit_type_income" class="peer sr-only" onchange="updateEditCategories()">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-green-400 peer-checked:bg-green-50/80 peer-checked:text-green-700 text-sm font-semibold transition-all">Income</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="type" value="expense" id="edit_type_expense" class="peer sr-only" onchange="updateEditCategories()">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-red-400 peer-checked:bg-red-50/80 peer-checked:text-red-700 text-sm font-semibold transition-all">Expense</div>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Description</label>
+                <input type="text" name="description" id="edit_description" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Amount ({{ currency }})</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium">{{ currency | currency_symbol }}</span>
+                    <input type="number" name="amount" id="edit_amount" step="0.01" min="0.01" required class="candy-input block w-full pl-7 pr-3 py-2.5 text-gray-900 focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Category</label>
+                <select name="category" id="edit_category" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Frequency</label>
+                <select name="frequency" id="edit_frequency" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Day of Month</label>
+                <input type="number" name="day_of_month" id="edit_day_of_month" min="1" max="31" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_tax_deductible" id="edit_ded" class="h-4 w-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500">
+                    <label for="edit_ded" class="text-sm font-medium text-gray-600">Tax deductible &#x1F4B0;</label>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('editRecurringModal').classList.add('hidden')" class="flex-1 py-3 px-4 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all">Cancel</button>
+                <button type="submit" class="candy-btn flex-1 py-3 px-4 text-sm">Save Changes &#x2728;</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var incomeCategories = {{ current_user.get_income_categories() | tojson }};
+    var expenseCategories = {{ current_user.get_expense_categories() | tojson }};
+
+    function populateCategories(selectId, categories, selected) {
+        var select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Select category</option>';
+        categories.forEach(function(cat) {
+            var opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            if (cat === selected) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    function updateAddCategories() {
+        var type = document.querySelector('#addRecurringForm input[name="type"]:checked').value;
+        var cats = type === 'income' ? incomeCategories : expenseCategories;
+        populateCategories('add_category', cats, '');
+    }
+
+    function updateEditCategories() {
+        var type = document.querySelector('#editRecurringForm input[name="type"]:checked').value;
+        var cats = type === 'income' ? incomeCategories : expenseCategories;
+        var current = document.getElementById('edit_category').getAttribute('data-selected') || '';
+        populateCategories('edit_category', cats, current);
+    }
+
+    function openEditRecurringModal(id, description, amount, type, category, frequency, dayOfMonth, isTaxDeductible) {
+        document.getElementById('editRecurringForm').action = '{{ url_port("recurring.edit", id=0) }}'.replace('/0', '/' + id);
+        document.getElementById('edit_description').value = description;
+        document.getElementById('edit_amount').value = amount;
+        document.getElementById('edit_frequency').value = frequency;
+        document.getElementById('edit_day_of_month').value = dayOfMonth;
+        document.getElementById('edit_ded').checked = isTaxDeductible;
+
+        // Set type radio
+        if (type === 'income') {
+            document.getElementById('edit_type_income').checked = true;
+        } else {
+            document.getElementById('edit_type_expense').checked = true;
+        }
+
+        // Set category
+        var cats = type === 'income' ? incomeCategories : expenseCategories;
+        document.getElementById('edit_category').setAttribute('data-selected', category);
+        populateCategories('edit_category', cats, category);
+
+        document.getElementById('editRecurringModal').classList.remove('hidden');
+    }
+
+    // Initialize add form categories
+    updateAddCategories();
+</script>
+{% endblock %}

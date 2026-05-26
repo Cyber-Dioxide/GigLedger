@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% block title %}Goals - GigLedger{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-up relative z-50">
+        <div>
+            <h1 class="text-2xl font-extrabold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Savings Goals &#x1F3AF;</h1>
+            <p class="text-sm text-gray-400 mt-1 font-medium">{{ goals|length }} goal{{ 's' if goals|length != 1 else '' }} tracked</p>
+        </div>
+        <button onclick="document.getElementById('addGoalModal').classList.remove('hidden')" class="candy-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            Add Goal
+        </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 fade-up fade-up-delay-1">
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-brand-500 font-semibold">Total Saved</p>
+            <p class="text-lg font-extrabold text-brand-600">{{ currency | currency_symbol }}{{ total_saved | money }}</p>
+        </div>
+        <div class="glass-card rounded-2xl px-4 py-3 text-center">
+            <p class="text-xs text-green-500 font-semibold">Goals Completed</p>
+            <p class="text-lg font-extrabold text-green-600">{{ completed_count }}</p>
+        </div>
+    </div>
+
+    <!-- Goals Grid -->
+    {% if goals %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 fade-up fade-up-delay-2">
+        {% for goal in goals %}
+        <div class="glass-card rounded-2xl overflow-hidden {% if goal.is_completed %}opacity-75{% endif %}">
+            <!-- Color accent bar -->
+            <div class="h-1.5 w-full" style="background: {{ goal.color }}"></div>
+            <div class="p-5">
+                <!-- Header: Icon + Name + Badge -->
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background: {{ goal.color }}20">
+                            {% if goal.icon == 'target' %}&#x1F3AF;
+                            {% elif goal.icon == 'vacation' %}&#x1F3D6;&#xFE0F;
+                            {% elif goal.icon == 'emergency' %}&#x1F4B0;
+                            {% elif goal.icon == 'house' %}&#x1F3E0;
+                            {% elif goal.icon == 'car' %}&#x1F697;
+                            {% elif goal.icon == 'education' %}&#x1F393;
+                            {% elif goal.icon == 'tech' %}&#x1F4BB;
+                            {% elif goal.icon == 'gaming' %}&#x1F3AE;
+                            {% else %}&#x1F3AF;{% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800 leading-tight">{{ goal.name }}</h3>
+                            {% if goal.is_completed %}
+                            <span class="candy-badge mt-0.5 inline-block">Completed &#x2705;</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-gray-500">{{ goal.progress_percent | decimal1 }}%</span>
+                        <span class="text-xs text-gray-400">{{ currency | currency_symbol }}{{ goal.current_amount | money }} / {{ currency | currency_symbol }}{{ goal.target_amount | money }}</span>
+                    </div>
+                    <div class="w-full bg-gray-100/80 rounded-full h-2.5 overflow-hidden">
+                        <div class="h-2.5 rounded-full transition-all duration-500" style="width: {{ goal.progress_percent }}%; background: {{ goal.color }}"></div>
+                    </div>
+                </div>
+
+                <!-- Details -->
+                <div class="flex items-center justify-between text-xs mb-4">
+                    <div>
+                        <span class="text-gray-400">Remaining:</span>
+                        <span class="font-bold {% if goal.remaining > 0 %}text-amber-600{% else %}text-green-600{% endif %}">{{ currency | currency_symbol }}{{ goal.remaining | money }}</span>
+                    </div>
+                    {% if goal.deadline %}
+                    <div>
+                        {% set days_left = (goal.deadline - now).days %}
+                        {% if goal.is_completed %}
+                        <span class="text-green-500 font-semibold">Done!</span>
+                        {% elif days_left < 0 %}
+                        <span class="text-red-500 font-semibold">Overdue</span>
+                        {% elif days_left <= 7 %}
+                        <span class="text-red-500 font-semibold">{{ days_left }}d left</span>
+                        {% elif days_left <= 30 %}
+                        <span class="text-amber-600 font-semibold">{{ days_left }}d left</span>
+                        {% else %}
+                        <span class="text-gray-400 font-medium">{{ goal.deadline.strftime('%b %d, %Y') }}</span>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <span class="text-gray-300 font-medium">No deadline</span>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    {% if not goal.is_completed %}
+                    <button onclick="openAddFundsModal({{ goal.id }}, '{{ goal.name | e }}')" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all hover:scale-105" style="background: {{ goal.color }}20; color: {{ goal.color }}">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        Add Funds
+                    </button>
+                    {% endif %}
+                    <button onclick="openEditGoalModal({{ goal.id }}, '{{ goal.name | e }}', {{ goal.target_amount }}, '{{ goal.deadline.strftime('%Y-%m-%d') if goal.deadline else '' }}', '{{ goal.icon }}', '{{ goal.color }}')" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100/80 text-gray-600 transition-all hover:scale-105">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        Edit
+                    </button>
+                    <form method="POST" action="{{ url_port('goals.complete', id=goal.id) }}" class="inline">
+                        <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all hover:scale-105 {% if goal.is_completed %}bg-amber-50/80 text-amber-600{% else %}bg-green-50/80 text-green-600{% endif %}">
+                            {% if goal.is_completed %}
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                            Undo
+                            {% else %}
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            Complete
+                            {% endif %}
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_port('goals.delete', id=goal.id) }}" onsubmit="return confirm('Delete this goal?')" class="inline">
+                        <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50/80 text-red-500 transition-all hover:scale-105">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-card text-center py-16 fade-up fade-up-delay-2">
+        <div class="mx-auto w-16 h-16 glass-card rounded-3xl flex items-center justify-center mb-4">
+            <span class="text-3xl">&#x1F3AF;</span>
+        </div>
+        <h3 class="text-gray-800 font-bold mb-1">No goals yet</h3>
+        <p class="text-sm text-gray-400 mb-4">Set a savings goal to start tracking your progress.</p>
+        <button onclick="document.getElementById('addGoalModal').classList.remove('hidden')" class="candy-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            Create Your First Goal
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Goal Modal -->
+<div id="addGoalModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="document.getElementById('addGoalModal').classList.add('hidden')"></div>
+    <div class="relative glass-card rounded-3xl p-7 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" style="background:rgba(255,255,255,0.9)">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-extrabold text-gray-900">Add Goal &#x1F3AF;</h2>
+            <button onclick="document.getElementById('addGoalModal').classList.add('hidden')" class="text-gray-300 hover:text-gray-600 transition-colors p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_port('goals.add') }}" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Goal Name</label>
+                <input type="text" name="name" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none" placeholder="e.g. Emergency Fund">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Target Amount ({{ currency }})</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium">{{ currency | currency_symbol }}</span>
+                    <input type="number" name="target_amount" step="0.01" min="0.01" required class="candy-input block w-full pl-7 pr-3 py-2.5 text-gray-900 focus:outline-none" placeholder="0.00">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Deadline (optional)</label>
+                <input type="date" name="deadline" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Icon</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="target" class="peer sr-only" checked>
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3AF;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="vacation" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3D6;&#xFE0F;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="emergency" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F4B0;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="house" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3E0;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="car" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F697;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="education" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F393;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="tech" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F4BB;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="gaming" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3AE;</div>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Color</label>
+                <div class="flex gap-2 flex-wrap">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#34d399" class="peer sr-only" checked>
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#34d399"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#60a5fa" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#60a5fa"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#f97316" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#f97316"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#f43f5e" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#f43f5e"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#a78bfa" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#a78bfa"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#fbbf24" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#fbbf24"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#2dd4bf" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#2dd4bf"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#fb7185" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#fb7185"></div>
+                    </label>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('addGoalModal').classList.add('hidden')" class="flex-1 py-3 px-4 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all">Cancel</button>
+                <button type="submit" class="candy-btn flex-1 py-3 px-4 text-sm">Create Goal &#x2728;</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Funds Modal -->
+<div id="addFundsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="document.getElementById('addFundsModal').classList.add('hidden')"></div>
+    <div class="relative glass-card rounded-3xl p-7 max-w-md w-full shadow-2xl" style="background:rgba(255,255,255,0.9)">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-extrabold text-gray-900">Add Funds &#x1F4B5;</h2>
+            <button onclick="document.getElementById('addFundsModal').classList.add('hidden')" class="text-gray-300 hover:text-gray-600 transition-colors p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">Adding funds to: <span id="fundsGoalName" class="font-bold text-gray-800"></span></p>
+        <form method="POST" id="addFundsForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Amount ({{ currency }})</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium">{{ currency | currency_symbol }}</span>
+                    <input type="number" name="amount" step="0.01" min="0.01" required class="candy-input block w-full pl-7 pr-3 py-2.5 text-gray-900 focus:outline-none" placeholder="0.00">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('addFundsModal').classList.add('hidden')" class="flex-1 py-3 px-4 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all">Cancel</button>
+                <button type="submit" class="candy-btn flex-1 py-3 px-4 text-sm">Add Funds &#x2728;</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Goal Modal -->
+<div id="editGoalModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="document.getElementById('editGoalModal').classList.add('hidden')"></div>
+    <div class="relative glass-card rounded-3xl p-7 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" style="background:rgba(255,255,255,0.9)">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-extrabold text-gray-900">Edit Goal &#x270F;&#xFE0F;</h2>
+            <button onclick="document.getElementById('editGoalModal').classList.add('hidden')" class="text-gray-300 hover:text-gray-600 transition-colors p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <form method="POST" id="editGoalForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Goal Name</label>
+                <input type="text" name="name" id="edit_name" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Target Amount ({{ currency }})</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium">{{ currency | currency_symbol }}</span>
+                    <input type="number" name="target_amount" id="edit_target_amount" step="0.01" min="0.01" required class="candy-input block w-full pl-7 pr-3 py-2.5 text-gray-900 focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Deadline (optional)</label>
+                <input type="date" name="deadline" id="edit_deadline" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Icon</label>
+                <div class="grid grid-cols-4 gap-2" id="editIconGrid">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="target" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3AF;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="vacation" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3D6;&#xFE0F;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="emergency" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F4B0;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="house" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3E0;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="car" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F697;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="education" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F393;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="tech" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F4BB;</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="icon" value="gaming" class="peer sr-only">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-brand-400 peer-checked:bg-brand-50/80 text-lg transition-all hover:scale-105">&#x1F3AE;</div>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Color</label>
+                <div class="flex gap-2 flex-wrap" id="editColorGrid">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#34d399" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#34d399"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#60a5fa" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#60a5fa"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#f97316" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#f97316"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#f43f5e" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#f43f5e"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#a78bfa" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#a78bfa"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#fbbf24" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#fbbf24"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#2dd4bf" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#2dd4bf"></div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" value="#fb7185" class="peer sr-only">
+                        <div class="w-8 h-8 rounded-full border-2 border-gray-200/80 peer-checked:border-gray-800 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-gray-400 transition-all" style="background:#fb7185"></div>
+                    </label>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('editGoalModal').classList.add('hidden')" class="flex-1 py-3 px-4 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all">Cancel</button>
+                <button type="submit" class="candy-btn flex-1 py-3 px-4 text-sm">Save Changes &#x2728;</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openAddFundsModal(goalId, goalName) {
+        document.getElementById('addFundsForm').action = '{{ url_port("goals.update", id=0) }}'.replace('/0', '/' + goalId);
+        document.getElementById('fundsGoalName').textContent = goalName;
+        document.getElementById('addFundsModal').classList.remove('hidden');
+    }
+
+    function openEditGoalModal(goalId, name, targetAmount, deadline, icon, color) {
+        document.getElementById('editGoalForm').action = '{{ url_port("goals.edit", id=0) }}'.replace('/0', '/' + goalId);
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_target_amount').value = targetAmount;
+        document.getElementById('edit_deadline').value = deadline;
+
+        // Set icon radio
+        var iconRadios = document.querySelectorAll('#editIconGrid input[name="icon"]');
+        iconRadios.forEach(function(r) { r.checked = (r.value === icon); });
+
+        // Set color radio
+        var colorRadios = document.querySelectorAll('#editColorGrid input[name="color"]');
+        colorRadios.forEach(function(r) { r.checked = (r.value === color); });
+
+        document.getElementById('editGoalModal').classList.remove('hidden');
+    }
+</script>
+{% endblock %}

@@ -157,11 +157,16 @@
                             {% endif %}
                         </td>
                         <td class="px-5 py-3.5 text-center">
-                            <form method="POST" action="{{ url_port('transactions.delete', id=tx.id) }}" onsubmit="return confirm('Delete this transaction?')" class="inline">
-                                <button type="submit" class="text-gray-300 hover:text-red-500 transition-all p-1 hover:scale-110">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="openEditModal({{ tx.id }}, '{{ tx.amount|abs }}', '{% if tx.amount > 0 %}income{% else %}expense{% endif %}', '{{ tx.date.strftime('%Y-%m-%d') }}', '{{ tx.category or '' }}', '{{ tx.description or '' }}', {{ 'true' if tx.is_tax_deductible else 'false' }})" class="text-gray-300 hover:text-brand-500 transition-all p-1 hover:scale-110" title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 </button>
-                            </form>
+                                <form method="POST" action="{{ url_port('transactions.delete', id=tx.id) }}" onsubmit="return confirm('Delete this transaction?')" class="inline">
+                                    <button type="submit" class="text-gray-300 hover:text-red-500 transition-all p-1 hover:scale-110" title="Delete">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -245,6 +250,65 @@
         </form>
     </div>
 </div>
+
+<!-- Edit Transaction Modal -->
+<div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="document.getElementById('editModal').classList.add('hidden')"></div>
+    <div class="relative glass-card rounded-3xl p-7 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" style="background:rgba(255,255,255,0.9)">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-extrabold text-gray-900">Edit Transaction &#x270F;&#xFE0F;</h2>
+            <button onclick="document.getElementById('editModal').classList.add('hidden')" class="text-gray-300 hover:text-gray-600 transition-colors p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <form method="POST" id="editForm" class="space-y-4">
+            <input type="hidden" name="tx_id" id="edit_tx_id">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Type</label>
+                <div class="flex gap-2">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="type" value="income" class="peer sr-only" id="edit_type_income" onchange="updateEditCategories()">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-green-400 peer-checked:bg-green-50/80 peer-checked:text-green-700 text-sm font-semibold transition-all">Income</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="type" value="expense" class="peer sr-only" id="edit_type_expense" onchange="updateEditCategories()">
+                        <div class="text-center py-2.5 rounded-xl border-2 border-gray-200/80 peer-checked:border-red-400 peer-checked:bg-red-50/80 peer-checked:text-red-700 text-sm font-semibold transition-all">Expense</div>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Amount ({{ currency }})</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium">{{ currency | currency_symbol }}</span>
+                    <input type="number" name="amount" id="edit_amount" step="0.01" min="0.01" required class="candy-input block w-full pl-7 pr-3 py-2.5 text-gray-900 focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Date</label>
+                <input type="date" name="date" id="edit_date" required class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Category</label>
+                <select name="category" id="edit_category" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1.5">Description</label>
+                <input type="text" name="description" id="edit_description" class="candy-input block w-full px-3 py-2.5 text-gray-900 focus:outline-none">
+            </div>
+            <div id="edit_deductible_section" class="hidden">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_tax_deductible" id="edit_ded" class="h-4 w-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500">
+                    <label for="edit_ded" class="text-sm font-medium text-gray-600">Tax deductible &#x1F4B0;</label>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="flex-1 py-3 px-4 glass-card rounded-xl text-sm font-semibold text-gray-600 hover:bg-white/80 transition-all">Cancel</button>
+                <button type="submit" class="candy-btn flex-1 py-3 px-4 text-sm">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -306,5 +370,54 @@
 
     document.getElementById('modal_amount').addEventListener('input', updateModalTaxImpact);
     updateModalCategories();
+
+    // Edit modal functions
+    function openEditModal(id, amount, type, date, category, description, deductible) {
+        document.getElementById('edit_tx_id').value = id;
+        document.getElementById('edit_amount').value = amount;
+        document.getElementById('edit_date').value = date;
+        document.getElementById('edit_description').value = description;
+
+        // Set type
+        if (type === 'income') {
+            document.getElementById('edit_type_income').checked = true;
+        } else {
+            document.getElementById('edit_type_expense').checked = true;
+        }
+
+        // Update categories and set selected
+        updateEditCategories(category);
+
+        // Deductible
+        if (type === 'expense') {
+            document.getElementById('edit_deductible_section').classList.remove('hidden');
+            document.getElementById('edit_ded').checked = deductible;
+        } else {
+            document.getElementById('edit_deductible_section').classList.add('hidden');
+            document.getElementById('edit_ded').checked = false;
+        }
+
+        // Set form action
+        document.getElementById('editForm').action = '{{ url_port("transactions.edit", id=0) }}'.replace('/0', '/' + id);
+
+        document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function updateEditCategories(selectedCat) {
+        var type = document.querySelector('#editForm input[name="type"]:checked').value;
+        var select = document.getElementById('edit_category');
+        var dedSection = document.getElementById('edit_deductible_section');
+        var cats = type === 'income' ? incomeCategories : expenseCategories;
+        select.innerHTML = '';
+        cats.forEach(function(cat) {
+            var opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            if (cat === selectedCat) opt.selected = true;
+            select.appendChild(opt);
+        });
+        if (type === 'expense') { dedSection.classList.remove('hidden'); }
+        else { dedSection.classList.add('hidden'); document.getElementById('edit_ded').checked = false; }
+    }
 </script>
 {% endblock %}
